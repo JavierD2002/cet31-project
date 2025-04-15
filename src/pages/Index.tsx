@@ -6,7 +6,8 @@ import {
   GraduationCap, 
   Home, 
   Users,
-  FileText
+  FileText,
+  BookText
 } from 'lucide-react';
 import {
   Card,
@@ -171,6 +172,36 @@ const Index = () => {
                   </ul>
                 </NavigationMenuContent>
               </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>
+                  <BookText className="h-4 w-4 mr-2" />
+                  Libro de Tema
+                </NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <ul className="grid w-[400px] gap-3 p-4 md:w-[500px] md:grid-cols-2 lg:w-[600px]">
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link to="/libro-de-tema" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <div className="text-sm font-medium leading-none">Registro de temas</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Ver temas dictados por curso
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                    <li>
+                      <NavigationMenuLink asChild>
+                        <Link to="/libro-de-tema/nuevo" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground">
+                          <div className="text-sm font-medium leading-none">Nuevo registro</div>
+                          <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
+                            Asentar nuevo tema dictado
+                          </p>
+                        </Link>
+                      </NavigationMenuLink>
+                    </li>
+                  </ul>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
         </div>
@@ -180,7 +211,7 @@ const Index = () => {
       <main className="container mx-auto py-8 px-4">
         <h2 className="text-2xl font-semibold mb-6">Panel Principal</h2>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
           <Card className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
               <CardTitle className="text-lg flex items-center">
@@ -240,6 +271,21 @@ const Index = () => {
               </Link>
             </CardContent>
           </Card>
+          
+          <Card className="hover:shadow-md transition-shadow">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-lg flex items-center">
+                <BookText className="h-5 w-5 mr-2 text-purple-700" />
+                Libro de Tema
+              </CardTitle>
+              <CardDescription>Registro de clases</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/libro-de-tema" className="text-blue-600 hover:underline text-sm">
+                Ver registros →
+              </Link>
+            </CardContent>
+          </Card>
         </div>
         
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -262,6 +308,10 @@ const Index = () => {
                 <div className="border-b pb-2">
                   <p className="text-sm font-medium">Nuevo informe - Alumno Martínez, Juan</p>
                   <p className="text-xs text-gray-500">15/04/2025, 10:20 AM</p>
+                </div>
+                <div className="border-b pb-2">
+                  <p className="text-sm font-medium">Tema dictado - Matemática 3° Año A</p>
+                  <p className="text-xs text-gray-500">15/04/2025, 09:15 AM</p>
                 </div>
               </div>
             </CardContent>
