@@ -17,7 +17,7 @@ const Index = () => {
       {/* Navigation */}
       <nav className="bg-white shadow-sm">
         <div className="container mx-auto">
-          <NavigationMenu className="py-2">
+          <NavigationMenu className="py-2 bg-lime-300">
             <NavigationMenuList>
               <NavigationMenuItem>
                 <Link to="/">
