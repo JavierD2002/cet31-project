@@ -1,38 +1,13 @@
-
 import { Link } from 'react-router-dom';
-import { 
-  Book, 
-  Calendar, 
-  GraduationCap, 
-  Home, 
-  Users,
-  FileText,
-  BookText
-} from 'lucide-react';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { 
-  NavigationMenu,
-  NavigationMenuContent,
-  NavigationMenuItem,
-  NavigationMenuLink,
-  NavigationMenuList,
-  NavigationMenuTrigger,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
-
+import { Book, Calendar, GraduationCap, Home, Users, FileText, BookText } from 'lucide-react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 const Index = () => {
-  return (
-    <div className="min-h-screen bg-gray-50">
+  return <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-blue-600 text-white p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Sistema de Gestión Escolar</h1>
+          <h1 className="text-2xl font-bold">Sistema de Gestión Escolar - CET31</h1>
           <div className="flex items-center space-x-4">
             <span className="text-sm">Admin</span>
           </div>
@@ -349,8 +324,6 @@ const Index = () => {
           <p>&copy; 2025 Sistema de Gestión Escolar - Escuela Técnica de Río Negro</p>
         </div>
       </footer>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
