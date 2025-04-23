@@ -261,8 +261,71 @@ const Index = () => {
               </Link>
             </CardContent>
           </Card>
-        </div>
         
+        {/* New management cards */}
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="h-5 w-5 mr-2 text-indigo-500" />
+              Estudiantes
+            </CardTitle>
+            <CardDescription>Gestión de estudiantes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/estudiantes" className="text-blue-600 hover:underline text-sm">
+              Administrar estudiantes →
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Users className="h-5 w-5 mr-2 text-red-500" />
+              Docentes
+            </CardTitle>
+            <CardDescription>Gestión de docentes</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/docentes" className="text-blue-600 hover:underline text-sm">
+              Administrar docentes →
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Book className="h-5 w-5 mr-2 text-green-500" />
+              Asignaturas
+            </CardTitle>
+            <CardDescription>Gestión de materias</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/asignaturas" className="text-blue-600 hover:underline text-sm">
+              Administrar asignaturas →
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-md transition-shadow">
+          <CardHeader className="pb-2">
+            <CardTitle className="text-lg flex items-center">
+              <Home className="h-5 w-5 mr-2 text-orange-500" />
+              Aulas
+            </CardTitle>
+            <CardDescription>Gestión de espacios</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to="/aulas" className="text-blue-600 hover:underline text-sm">
+              Administrar aulas →
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Keep the rest of the main content */}
+      
         <div className="mt-10 grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
@@ -316,14 +379,16 @@ const Index = () => {
             </CardContent>
           </Card>
         </div>
-      </main>
       
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-4 mt-8">
+    </main>
+
+    {/* Footer */}
+    <footer className="bg-gray-800 text-white py-4 mt-8">
         <div className="container mx-auto text-center text-sm">
           <p>&copy; 2025 Sistema de Gestión Escolar - Escuela Técnica de Río Negro</p>
         </div>
       </footer>
-    </div>;
+  </div>;
 };
+
 export default Index;
