@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -10,6 +9,14 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
 
 const Index = () => {
   return (
@@ -29,6 +36,70 @@ const Index = () => {
           </div>
         </div>
       </header>
+
+      <nav className="bg-white border-b">
+        <div className="container mx-auto">
+          <NavigationMenu className="py-2">
+            <NavigationMenuList>
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Gestión de Alumnos</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid gap-3 p-4 w-[400px]">
+                    <Link to="/estudiantes" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Estudiantes</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Gestionar información de estudiantes</p>
+                    </Link>
+                    <Link to="/asistencia" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Asistencia</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Control de asistencia diaria</p>
+                    </Link>
+                    <Link to="/calificaciones" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Calificaciones</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Registro y consulta de calificaciones</p>
+                    </Link>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Gestión Académica</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid gap-3 p-4 w-[400px]">
+                    <Link to="/docentes" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Docentes</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Administración de información docente</p>
+                    </Link>
+                    <Link to="/asignaturas" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Asignaturas</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Gestión de materias y asignaturas</p>
+                    </Link>
+                    <Link to="/libro-de-tema" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Libro de Tema</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Gestión del libro de temas</p>
+                    </Link>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+
+              <NavigationMenuItem>
+                <NavigationMenuTrigger>Gestión Administrativa</NavigationMenuTrigger>
+                <NavigationMenuContent>
+                  <div className="grid gap-3 p-4 w-[400px]">
+                    <Link to="/aulas" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Aulas</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Administración de espacios educativos</p>
+                    </Link>
+                    <Link to="/informes" className="block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground">
+                      <div className="text-sm font-medium leading-none">Informes</div>
+                      <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">Generación de informes y estadísticas</p>
+                    </Link>
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </div>
+      </nav>
 
       <main className="container mx-auto py-8 px-4">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
