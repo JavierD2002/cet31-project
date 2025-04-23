@@ -1,10 +1,8 @@
-
 import React from 'react';
 import { Link } from 'react-router-dom';
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
@@ -192,7 +190,6 @@ const Index = () => {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="bg-gray-800 text-white py-4 mt-8">
         <div className="container mx-auto text-center text-sm">
           <p>Escuela Técnica de Villa Manzano - Río Negro - Argentina</p>
