@@ -2,12 +2,20 @@ import { Link } from 'react-router-dom';
 import { Book, Calendar, GraduationCap, Home, Users, FileText, BookText } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { NavigationMenu, NavigationMenuContent, NavigationMenuItem, NavigationMenuLink, NavigationMenuList, NavigationMenuTrigger, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+
 const Index = () => {
   return <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <header className="bg-blue-600 text-white p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Sistema de Gestión Escolar - CET31</h1>
+          <div className="flex items-center space-x-4">
+            <img 
+              src="/lovable-uploads/23fe776b-bfc4-4d5b-91a2-a06fdf2c43d1.png" 
+              alt="CET N° 31 - Villa Manzano Logo" 
+              className="h-16 w-16 object-contain"
+            />
+            <h1 className="text-2xl font-bold">Sistema de Gestión Escolar - CET31</h1>
+          </div>
           <div className="flex items-center space-x-4">
             <span className="text-sm">Admin</span>
           </div>
