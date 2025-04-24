@@ -16,19 +16,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
 
 const Aulas = () => {
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Sistema de Gestión Escolar</h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm">Admin</span>
-          </div>
-        </div>
-      </header>
-
+      <Header />
       <nav className="bg-white shadow-sm p-4">
         <div className="container mx-auto">
           <Link to="/" className="text-blue-600 hover:underline flex items-center">
@@ -64,6 +58,7 @@ const Aulas = () => {
           </CardContent>
         </Card>
       </main>
+      <Footer />
     </div>
   );
 };
