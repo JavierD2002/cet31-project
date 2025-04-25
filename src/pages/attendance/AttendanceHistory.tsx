@@ -1,51 +1,34 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Calendar, User } from 'lucide-react';
+import { ChevronLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-
-// Mock data for demonstration
-const mockAttendanceHistory = [
-  {
-    id: 1,
-    fecha: '25/04/2025',
-    profesor: 'Prof. Martínez',
-    asignatura: 'Matemáticas',
-    curso: '1° Año A',
-    presentes: 18,
-    ausentes: 2,
-    tardanzas: 1,
-    retirados: 0
-  },
-  {
-    id: 2,
-    fecha: '24/04/2025',
-    profesor: 'Prof. García',
-    asignatura: 'Química',
-    curso: '2° Año A',
-    presentes: 20,
-    ausentes: 1,
-    tardanzas: 2,
-    retirados: 1
-  },
-  {
-    id: 3,
-    fecha: '23/04/2025',
-    profesor: 'Prof. López',
-    asignatura: 'Literatura',
-    curso: '1° Año B',
-    presentes: 19,
-    ausentes: 0,
-    tardanzas: 3,
-    retirados: 0
-  },
-];
+import { useQuery } from '@tanstack/react-query';
+import { getAttendanceHistory } from '@/services/supabase';
 
 const AttendanceHistory = () => {
+  const { data: attendanceHistory, isLoading, error } = useQuery({
+    queryKey: ['attendanceHistory'],
+    queryFn: getAttendanceHistory,
+  });
+
+  const calculateStats = (details: any[]) => {
+    return details.reduce(
+      (acc, curr) => {
+        acc[curr.estado]++;
+        return acc;
+      },
+      { presente: 0, ausente: 0, tardanza: 0, retirado: 0 }
+    );
+  };
+
+  if (isLoading) return <div>Cargando...</div>;
+  if (error) return <div>Error al cargar el historial</div>;
+
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
@@ -94,34 +77,37 @@ const AttendanceHistory = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {mockAttendanceHistory.map((registro) => (
-                    <TableRow key={registro.id}>
-                      <TableCell className="font-medium">{registro.fecha}</TableCell>
-                      <TableCell>{registro.profesor}</TableCell>
-                      <TableCell>{registro.asignatura}</TableCell>
-                      <TableCell>{registro.curso}</TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="default" className="bg-green-500">{registro.presentes}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="default" className="bg-red-500">{registro.ausentes}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="default" className="bg-yellow-500">{registro.tardanzas}</Badge>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Badge variant="default" className="bg-blue-500">{registro.retirados}</Badge>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Link 
-                          to={`/asistencia/detalle/${registro.id}`}
-                          className="text-blue-600 hover:underline"
-                        >
-                          Ver detalle
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {attendanceHistory?.map((registro) => {
+                    const stats = calculateStats(registro.asistencias_detalle);
+                    return (
+                      <TableRow key={registro.id}>
+                        <TableCell className="font-medium">{registro.fecha}</TableCell>
+                        <TableCell>{registro.profesor_id}</TableCell>
+                        <TableCell>{registro.asignatura_id}</TableCell>
+                        <TableCell>{registro.curso}</TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="default" className="bg-green-500">{stats.presente}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="default" className="bg-red-500">{stats.ausente}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="default" className="bg-yellow-500">{stats.tardanza}</Badge>
+                        </TableCell>
+                        <TableCell className="text-center">
+                          <Badge variant="default" className="bg-blue-500">{stats.retirado}</Badge>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Link 
+                            to={`/asistencia/detalle/${registro.id}`}
+                            className="text-blue-600 hover:underline"
+                          >
+                            Ver detalle
+                          </Link>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>

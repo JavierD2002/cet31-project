@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, User } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import AttendanceHeader from '@/components/attendance/AttendanceHeader';
@@ -11,8 +11,8 @@ import DateSelector from '@/components/attendance/DateSelector';
 import AttendanceSelectors from '@/components/attendance/AttendanceSelectors';
 import AttendanceTable from '@/components/attendance/AttendanceTable';
 import { Teacher, Subject, Student, AttendanceStatus } from '@/types/attendance';
+import { saveAttendance } from '@/services/supabase';
 
-// Mock data
 const mockTeachers: Teacher[] = [
   { id: 1, nombre: "Prof. Martínez" },
   { id: 2, nombre: "Prof. García" },
@@ -114,17 +114,48 @@ const Asistencia = () => {
     }
   };
 
-  const saveAttendance = () => {
-    console.log("Guardando asistencia para:", formatDate(selectedDate));
-    console.log("Profesor:", selectedTeacher);
-    console.log("Asignatura:", selectedSubject);
-    console.log("Curso:", selectedCourse);
-    console.log("Datos de asistencia:", attendanceData);
-    
-    alert("Asistencia guardada correctamente. Cuando conectes Supabase, estos datos se almacenarán en la base de datos.");
-    
-    setAttendanceData({});
-    setObservations({});
+  const { toast } = useToast();
+
+  const saveAttendanceData = async () => {
+    if (!selectedTeacher || !selectedSubject || !selectedCourse) {
+      toast({
+        title: "Error",
+        description: "Por favor, seleccione todos los campos requeridos",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const detalles = Object.entries(attendanceData).map(([studentId, data]) => ({
+        estudiante_id: Number(studentId),
+        estado: data.status,
+        observacion: data.observacion,
+      }));
+
+      await saveAttendance(
+        formatDate(selectedDate),
+        selectedTeacher,
+        selectedSubject,
+        selectedCourse,
+        detalles
+      );
+
+      toast({
+        title: "Éxito",
+        description: "La asistencia ha sido guardada correctamente",
+      });
+
+      setAttendanceData({});
+      setObservations({});
+    } catch (error) {
+      console.error('Error al guardar la asistencia:', error);
+      toast({
+        title: "Error",
+        description: "Hubo un error al guardar la asistencia",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -196,7 +227,7 @@ const Asistencia = () => {
               <div className="mt-6 flex justify-end">
                 <Button 
                   variant="default"
-                  onClick={saveAttendance}
+                  onClick={saveAttendanceData}
                   disabled={Object.keys(attendanceData).length === 0}
                 >
                   Guardar Asistencia
