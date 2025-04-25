@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Teacher, Subject, Student, AttendanceStatus } from '@/types/attendance';
+import { Badge } from "@/components/ui/badge";
 
 // Mock data for demonstration
 const mockAttendanceHistory = [
@@ -32,7 +32,17 @@ const mockAttendanceHistory = [
     tardanzas: 2,
     retirados: 1
   },
-  // ... más datos de ejemplo
+  {
+    id: 3,
+    fecha: '23/04/2025',
+    profesor: 'Prof. López',
+    asignatura: 'Literatura',
+    curso: '1° Año B',
+    presentes: 19,
+    ausentes: 0,
+    tardanzas: 3,
+    retirados: 0
+  },
 ];
 
 const AttendanceHistory = () => {
@@ -90,10 +100,18 @@ const AttendanceHistory = () => {
                       <TableCell>{registro.profesor}</TableCell>
                       <TableCell>{registro.asignatura}</TableCell>
                       <TableCell>{registro.curso}</TableCell>
-                      <TableCell className="text-center text-green-600">{registro.presentes}</TableCell>
-                      <TableCell className="text-center text-red-600">{registro.ausentes}</TableCell>
-                      <TableCell className="text-center text-yellow-600">{registro.tardanzas}</TableCell>
-                      <TableCell className="text-center text-blue-600">{registro.retirados}</TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="default" className="bg-green-500">{registro.presentes}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="default" className="bg-red-500">{registro.ausentes}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="default" className="bg-yellow-500">{registro.tardanzas}</Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant="default" className="bg-blue-500">{registro.retirados}</Badge>
+                      </TableCell>
                       <TableCell className="text-right">
                         <Link 
                           to={`/asistencia/detalle/${registro.id}`}

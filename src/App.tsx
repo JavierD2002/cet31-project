@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +14,7 @@ import Aulas from "./pages/Aulas";
 import Estudiantes from "./pages/Estudiantes";
 import Docentes from "./pages/Docentes";
 import Asignaturas from "./pages/Asignaturas";
+import AttendanceHistory from "./pages/attendance/AttendanceHistory";
 
 const queryClient = new QueryClient();
 
