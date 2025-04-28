@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js'
 import { Database } from '@/types/supabase'
 
@@ -55,6 +54,39 @@ export const getAttendanceHistory = async () => {
       asistencias_detalle (*)
     `)
     .order('fecha', { ascending: false })
+
+  if (error) throw error
+  return data
+}
+
+export const getAttendanceDetails = async (id: number) => {
+  const { data, error } = await supabase
+    .from('asistencias')
+    .select(`
+      *,
+      asistencias_detalle (*)
+    `)
+    .eq('id', id)
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export const getStudentAbsences = async (estudiante_id: number) => {
+  const { data, error } = await supabase
+    .from('asistencias_detalle')
+    .select(`
+      *,
+      asistencias (
+        fecha,
+        asignatura_id,
+        curso
+      )
+    `)
+    .eq('estudiante_id', estudiante_id)
+    .eq('estado', 'ausente')
+    .order('hora_registro', { ascending: false })
 
   if (error) throw error
   return data
