@@ -5,8 +5,11 @@ import { supabase, isSupabaseConfigured } from './client';
 const mockGetTeachers = async () => {
   console.warn('Supabase not configured: getTeachers called with mock implementation')
   return [
-    { id: 1, usuario_id: 101, nombre: "Ana García", dni: "25789456", especialidad: "Matemática" },
-    { id: 2, usuario_id: 102, nombre: "Luis Rodríguez", dni: "30458123", especialidad: "Historia" }
+    { id: 1, usuario_id: 101, nombre: "González, Juan", dni: "25789123", especialidad: "Matemática" },
+    { id: 2, usuario_id: 102, nombre: "Rodríguez, Ana", dni: "26123789", especialidad: "Lengua" },
+    { id: 3, usuario_id: 103, nombre: "Pérez, Carlos", dni: "25987321", especialidad: "Historia" },
+    { id: 4, usuario_id: 104, nombre: "López, María", dni: "26789123", especialidad: "Geografía" },
+    { id: 5, usuario_id: 105, nombre: "Martínez, José", dni: "25321789", especialidad: "Física" }
   ]
 }
 
@@ -16,15 +19,17 @@ const mockGetTeacherProfile = async () => {
     id: 1,
     usuario: {
       id: 101,
-      dni: "25789456",
-      nombre: "Ana",
-      apellido: "García",
-      email: "ana.garcia@escuela.edu"
+      dni: "25789123",
+      nombre: "Juan",
+      apellido: "González",
+      email: "juan.gonzalez@docente.edu"
     },
     especialidad: "Matemática",
+    cursos: ["1° Año A", "2° Año B", "3° Año A"],
     asignaturas: [
-      { id: 1, nombre: "Matemática", cursos: ["1° Año A", "2° Año A"] },
-      { id: 2, nombre: "Física", cursos: ["3° Año A"] }
+      { id: 1, nombre: "Matemática I", curso: "1° Año A" },
+      { id: 2, nombre: "Matemática II", curso: "2° Año B" },
+      { id: 3, nombre: "Matemática III", curso: "3° Año A" }
     ]
   }
 }
@@ -79,15 +84,13 @@ export const getTeacherProfile = isSupabaseConfigured
       if (error) throw error
       return {
         id: data.id,
-        usuario: data.usuarios
-          ? {
-              id: data.usuarios.id,
-              dni: data.usuarios.dni || "",
-              nombre: data.usuarios.nombre || "",
-              apellido: data.usuarios.apellido || "",
-              email: data.usuarios.email || ""
-            }
-          : { id: 0, dni: "", nombre: "", apellido: "", email: "" },
+        usuario: {
+          id: data.usuarios?.id,
+          dni: data.usuarios?.dni || "",
+          nombre: data.usuarios?.nombre || "",
+          apellido: data.usuarios?.apellido || "",
+          email: data.usuarios?.email || ""
+        },
         especialidad: data.especialidad
       }
     }

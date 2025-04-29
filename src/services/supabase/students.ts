@@ -88,15 +88,13 @@ export const getStudentProfile = isSupabaseConfigured
       if (error) throw error
       return {
         id: data.id,
-        usuario: data.usuarios 
-          ? {
-              id: data.usuarios.id,
-              dni: data.usuarios.dni || "",
-              nombre: data.usuarios.nombre || "",
-              apellido: data.usuarios.apellido || "",
-              email: data.usuarios.email || ""
-            }
-          : { id: 0, dni: "", nombre: "", apellido: "", email: "" },
+        usuario: {
+          id: data.usuarios?.id,
+          dni: data.usuarios?.dni || "",
+          nombre: data.usuarios?.nombre || "",
+          apellido: data.usuarios?.apellido || "",
+          email: data.usuarios?.email || ""
+        },
         curso: data.curso
       }
     }
