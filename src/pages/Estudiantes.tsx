@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getStudents } from '@/services/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 type Student = {
   id: number;
@@ -37,12 +38,14 @@ const Estudiantes = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
+  const { hasRole } = useAuth();
+  const canCreateStudent = hasRole(['administrador', 'directivo']);
 
   useEffect(() => {
     const fetchStudents = async () => {
       try {
         const data = await getStudents();
-        setStudents(data);
+        setStudents(data as Student[]);
       } catch (error) {
         console.error("Error al cargar estudiantes:", error);
         toast({
@@ -85,10 +88,12 @@ const Estudiantes = () => {
                 <CardTitle>Gestión de Estudiantes</CardTitle>
                 <CardDescription>Administrar información de estudiantes</CardDescription>
               </div>
-              <Button variant="outline">
-                <User className="h-4 w-4 mr-2" />
-                Nuevo Estudiante
-              </Button>
+              {canCreateStudent && (
+                <Button variant="outline">
+                  <User className="h-4 w-4 mr-2" />
+                  Nuevo Estudiante
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>

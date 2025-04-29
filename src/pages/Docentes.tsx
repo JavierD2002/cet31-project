@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getTeachers } from '@/services/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 type Teacher = {
   id: number;
@@ -37,12 +38,14 @@ const Docentes = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
+  const { hasRole } = useAuth();
+  const canCreateTeacher = hasRole(['administrador', 'directivo']);
 
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
         const data = await getTeachers();
-        setTeachers(data);
+        setTeachers(data as Teacher[]);
       } catch (error) {
         console.error("Error al cargar docentes:", error);
         toast({
@@ -85,10 +88,12 @@ const Docentes = () => {
                 <CardTitle>Gestión de Docentes</CardTitle>
                 <CardDescription>Administrar información de docentes</CardDescription>
               </div>
-              <Button variant="outline">
-                <User className="h-4 w-4 mr-2" />
-                Nuevo Docente
-              </Button>
+              {canCreateTeacher && (
+                <Button variant="outline">
+                  <User className="h-4 w-4 mr-2" />
+                  Nuevo Docente
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
