@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '@/services/supabase';
+import { supabase, getMockUsers } from '@/services/supabase';
 import { UserRole } from '@/types/supabase';
 import { useToast } from '@/components/ui/use-toast';
 

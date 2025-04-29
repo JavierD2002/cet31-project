@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ChevronLeft, User, Book, CalendarDays, FileText } from 'lucide-react';
+import { ChevronLeft, User, Book, CalendarDays, FileText, Eye } from 'lucide-react';
 import {
   Card,
   CardContent,
