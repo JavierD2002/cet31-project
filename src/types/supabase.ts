@@ -7,6 +7,8 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
+export type UserRole = 'estudiante' | 'docente' | 'directivo' | 'administrador';
+
 export interface Database {
   public: {
     Tables: {
@@ -65,6 +67,76 @@ export interface Database {
           created_at?: string
         }
       }
+      usuarios: {
+        Row: {
+          id: number
+          dni: string
+          nombre: string
+          apellido: string
+          email: string
+          rol: UserRole
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          dni: string
+          nombre: string
+          apellido: string
+          email: string
+          rol: UserRole
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          dni?: string
+          nombre?: string
+          apellido?: string
+          email?: string
+          rol?: UserRole
+          created_at?: string
+        }
+      }
+      estudiantes: {
+        Row: {
+          id: number
+          usuario_id: number
+          curso: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          usuario_id: number
+          curso: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          usuario_id?: number
+          curso?: string
+          created_at?: string
+        }
+      }
+      docentes: {
+        Row: {
+          id: number
+          usuario_id: number
+          especialidad: string
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          usuario_id: number
+          especialidad: string
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          usuario_id?: number
+          especialidad?: string
+          created_at?: string
+        }
+      }
     }
   }
 }
+
