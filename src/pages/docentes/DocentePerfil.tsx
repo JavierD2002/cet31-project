@@ -1,74 +1,91 @@
 
-import { useState, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ChevronLeft, User, Book, CalendarDays, FileText, Eye } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { useParams, Link } from 'react-router-dom';
+import { 
+  ChevronLeft, 
+  User, 
+  Mail, 
+  Phone, 
+  GraduationCap, 
+  BookOpen, 
+  FileText,
+  Calendar
+} from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/components/ui/use-toast";
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getTeacherProfile } from '@/services/supabase';
 
-type Asignatura = {
-  id: number;
-  nombre: string;
-  cursos: string[];
-};
-
+// Tipo para el perfil de docente extendido
 type TeacherProfile = {
   id: number;
   usuario: {
-    id?: number;
+    id: number;
     dni: string;
     nombre: string;
     apellido: string;
     email: string;
+    telefono?: string;
   };
   especialidad: string;
-  asignaturas?: Asignatura[];
+  cursos: string[];
+  asignaturas: {
+    id: number;
+    nombre: string;
+    curso: string;
+  }[];
+  informes?: {
+    id: number;
+    titulo: string;
+    fecha: string;
+    tipo: string;
+  }[];
 };
 
 const DocentePerfil = () => {
   const { id } = useParams<{ id: string }>();
-  const [profile, setProfile] = useState<TeacherProfile | null>(null);
+  const [teacher, setTeacher] = useState<TeacherProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-
+  
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!id) return;
-      
+    const fetchTeacherData = async () => {
       try {
-        const data = await getTeacherProfile(parseInt(id));
+        // Cargamos los datos base del docente
+        const profileData = await getTeacherProfile(Number(id));
         
-        // En un entorno real, aquí deberíamos cargar también las asignaturas asignadas
-        // Para la demo, usaremos datos de ejemplo
-        const mockAsignaturas = [
-          { id: 1, nombre: "Matemática", cursos: ["1° Año A", "2° Año A"] },
-          { id: 2, nombre: "Física", cursos: ["3° Año A"] },
-        ];
+        // Extendemos con datos ficticios para esta demostración
+        // En un sistema real, estos datos vendrían de diferentes endpoints
+        const extendedData: TeacherProfile = {
+          ...profileData,
+          cursos: ["1° Año A", "2° Año B", "3° Año A"],
+          asignaturas: [
+            { id: 1, nombre: "Matemática I", curso: "1° Año A" },
+            { id: 2, nombre: "Matemática II", curso: "2° Año B" },
+            { id: 3, nombre: "Matemática III", curso: "3° Año A" }
+          ],
+          informes: [
+            { id: 1, titulo: "Informe trimestral 1° Año A", fecha: "2025-04-10", tipo: "Trimestral" },
+            { id: 2, titulo: "Seguimiento adaptaciones curriculares", fecha: "2025-03-15", tipo: "Especial" }
+          ]
+        };
         
-        setProfile({
-          ...data,
-          asignaturas: mockAsignaturas
-        });
+        setTeacher(extendedData);
       } catch (error) {
-        console.error("Error al cargar perfil de docente:", error);
+        console.error("Error al cargar el perfil del docente:", error);
         toast({
           title: "Error",
-          description: "No se pudo cargar el perfil del docente",
+          description: "No se pudo cargar la información del docente",
           variant: "destructive",
         });
       } finally {
@@ -76,7 +93,9 @@ const DocentePerfil = () => {
       }
     };
 
-    fetchProfile();
+    if (id) {
+      fetchTeacherData();
+    }
   }, [id, toast]);
 
   if (loading) {
@@ -85,7 +104,8 @@ const DocentePerfil = () => {
         <Header />
         <main className="container mx-auto py-8 px-4">
           <div className="flex justify-center items-center h-64">
-            <p>Cargando perfil del docente...</p>
+            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-r-transparent"></div>
+            <span className="ml-3 text-lg font-medium">Cargando perfil...</span>
           </div>
         </main>
         <Footer />
@@ -93,14 +113,23 @@ const DocentePerfil = () => {
     );
   }
 
-  if (!profile) {
+  if (!teacher) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
         <main className="container mx-auto py-8 px-4">
-          <div className="flex justify-center items-center h-64">
-            <p>No se encontró el docente</p>
-          </div>
+          <Card>
+            <CardContent className="pt-6 text-center">
+              <div className="flex flex-col items-center justify-center py-12">
+                <User className="h-16 w-16 text-gray-300" />
+                <h2 className="mt-4 text-2xl font-bold">Docente no encontrado</h2>
+                <p className="mt-2 text-gray-500">El perfil que buscas no existe o ha sido eliminado.</p>
+                <Button asChild className="mt-6">
+                  <Link to="/docentes">Volver a la lista de docentes</Link>
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </main>
         <Footer />
       </div>
@@ -110,224 +139,195 @@ const DocentePerfil = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <Header />
+      
       <nav className="bg-white shadow-sm p-4">
         <div className="container mx-auto">
           <Link to="/docentes" className="text-blue-600 hover:underline flex items-center">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Volver a Docentes
+            Volver a la lista de docentes
           </Link>
         </div>
       </nav>
-
+      
       <main className="container mx-auto py-8 px-4">
+        {/* Perfil superior */}
         <Card className="mb-6">
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <div className="bg-blue-100 p-3 rounded-full">
-                <User className="h-6 w-6 text-blue-600" />
+          <CardContent className="p-6">
+            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
+              <Avatar className="h-24 w-24">
+                <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
+                  {teacher.usuario.nombre[0]}{teacher.usuario.apellido[0]}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="flex-1 text-center md:text-left">
+                <h2 className="text-2xl font-bold">{teacher.usuario.apellido}, {teacher.usuario.nombre}</h2>
+                <p className="text-gray-500">Docente - {teacher.especialidad}</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 text-blue-600 mr-2" />
+                    <span>DNI: {teacher.usuario.dni}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Mail className="h-4 w-4 text-blue-600 mr-2" />
+                    <span>{teacher.usuario.email}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <Phone className="h-4 w-4 text-blue-600 mr-2" />
+                    <span>{teacher.usuario.telefono || 'No registrado'}</span>
+                  </div>
+                  <div className="flex items-center">
+                    <GraduationCap className="h-4 w-4 text-blue-600 mr-2" />
+                    <span>{teacher.especialidad}</span>
+                  </div>
+                </div>
               </div>
-              <div>
-                <CardTitle>{profile.usuario.apellido}, {profile.usuario.nombre}</CardTitle>
-                <CardDescription>DNI: {profile.usuario.dni} | Especialidad: {profile.especialidad}</CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              <div>
-                <p className="text-sm font-medium">Email:</p>
-                <p className="text-gray-600">{profile.usuario.email}</p>
+              
+              <div className="flex flex-col gap-2">
+                <Button variant="outline">Editar perfil</Button>
               </div>
             </div>
           </CardContent>
         </Card>
-
-        <Tabs defaultValue="asignaturas" className="w-full">
-          <TabsList className="grid grid-cols-3 mb-4">
-            <TabsTrigger value="asignaturas" className="flex items-center">
-              <Book className="h-4 w-4 mr-2" />
-              Asignaturas
+        
+        {/* Tabs de información */}
+        <Tabs defaultValue="asignaturas">
+          <TabsList className="grid grid-cols-3 mb-8">
+            <TabsTrigger value="asignaturas" className="flex items-center gap-2">
+              <BookOpen className="h-4 w-4" />
+              <span className="hidden sm:inline">Asignaturas</span>
             </TabsTrigger>
-            <TabsTrigger value="asistencia" className="flex items-center">
-              <CalendarDays className="h-4 w-4 mr-2" />
-              Registro de Asistencia
+            <TabsTrigger value="informes" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              <span className="hidden sm:inline">Informes</span>
             </TabsTrigger>
-            <TabsTrigger value="informes" className="flex items-center">
-              <FileText className="h-4 w-4 mr-2" />
-              Informes
+            <TabsTrigger value="horarios" className="flex items-center gap-2">
+              <Calendar className="h-4 w-4" />
+              <span className="hidden sm:inline">Horarios</span>
             </TabsTrigger>
           </TabsList>
           
+          {/* Contenido: Asignaturas */}
           <TabsContent value="asignaturas">
             <Card>
               <CardHeader>
-                <CardTitle>Asignaturas Asignadas</CardTitle>
-                <CardDescription>Ciclo lectivo 2025</CardDescription>
+                <CardTitle>Asignaturas a cargo</CardTitle>
+                <CardDescription>Materias dictadas por el docente en el ciclo lectivo actual</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
-                  {profile.asignaturas?.map((asignatura) => (
-                    <div key={asignatura.id} className="border rounded-md p-4">
-                      <h3 className="text-lg font-medium mb-2">{asignatura.nombre}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                        {asignatura.cursos.map((curso, index) => (
-                          <div key={index} className="bg-blue-50 py-1 px-3 rounded-md flex justify-between items-center">
-                            <span>{curso}</span>
-                            <div className="flex space-x-1">
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link to={`/asistencia?subject=${asignatura.id}&curso=${curso}`}>
-                                  <CalendarDays className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                              <Button variant="ghost" size="sm" asChild>
-                                <Link to={`/calificaciones?subject=${asignatura.id}&curso=${curso}`}>
-                                  <Book className="h-4 w-4" />
-                                </Link>
-                              </Button>
-                            </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {teacher.asignaturas.map((asignatura) => (
+                    <Card key={asignatura.id}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium">{asignatura.nombre}</h3>
+                            <p className="text-sm text-gray-500">{asignatura.curso}</p>
                           </div>
-                        ))}
-                      </div>
-                    </div>
+                          <Button variant="ghost" size="sm" asChild>
+                            <Link to={`/asignaturas/${asignatura.id}`}>
+                              Ver detalles
+                            </Link>
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
                   ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
           
-          <TabsContent value="asistencia">
+          {/* Contenido: Informes */}
+          <TabsContent value="informes">
             <Card>
               <CardHeader>
-                <CardTitle>Registro de Asistencia</CardTitle>
-                <CardDescription>Últimos registros de asistencia</CardDescription>
+                <CardTitle>Informes pedagógicos</CardTitle>
+                <CardDescription>Informes elaborados por el docente</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-md overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left font-medium text-gray-500">Fecha</th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-500">Asignatura</th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-500">Curso</th>
-                        <th className="px-4 py-2 text-right font-medium text-gray-500">Acciones</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-200">
-                      <tr>
-                        <td className="px-4 py-3">29/04/2025</td>
-                        <td className="px-4 py-3">Matemática</td>
-                        <td className="px-4 py-3">1° Año A</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to="/asistencia/detalle/1">
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3">28/04/2025</td>
-                        <td className="px-4 py-3">Física</td>
-                        <td className="px-4 py-3">3° Año A</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to="/asistencia/detalle/2">
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                      <tr>
-                        <td className="px-4 py-3">27/04/2025</td>
-                        <td className="px-4 py-3">Matemática</td>
-                        <td className="px-4 py-3">2° Año A</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to="/asistencia/detalle/3">
-                              <Eye className="h-4 w-4" />
-                            </Link>
-                          </Button>
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-                
-                <div className="mt-4 flex justify-end">
-                  <Button asChild>
-                    <Link to="/asistencia/historial">
-                      Ver todos los registros
-                    </Link>
-                  </Button>
-                </div>
+                {teacher.informes && teacher.informes.length > 0 ? (
+                  <div className="space-y-4">
+                    {teacher.informes.map((informe) => (
+                      <div key={informe.id} className="p-4 border rounded-lg">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-medium">{informe.titulo}</h3>
+                            <p className="text-sm text-gray-500">
+                              {new Date(informe.fecha).toLocaleDateString('es-AR')} - {informe.tipo}
+                            </p>
+                          </div>
+                          <Button variant="outline" size="sm">Ver informe</Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-gray-500">
+                    <FileText className="mx-auto h-12 w-12 text-gray-300" />
+                    <h3 className="mt-4 text-lg font-medium">No hay informes registrados</h3>
+                    <p className="mt-2">El docente no ha registrado informes pedagógicos aún.</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </TabsContent>
           
-          <TabsContent value="informes">
+          {/* Contenido: Horarios */}
+          <TabsContent value="horarios">
             <Card>
               <CardHeader>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <CardTitle>Informes Pedagógicos</CardTitle>
-                    <CardDescription>Informes creados por este docente</CardDescription>
-                  </div>
-                  <Button asChild>
-                    <Link to="/informes/nuevo">
-                      <FileText className="h-4 w-4 mr-2" />
-                      Nuevo Informe
-                    </Link>
-                  </Button>
-                </div>
+                <CardTitle>Horarios de clase</CardTitle>
+                <CardDescription>Horarios asignados al docente</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="border rounded-md overflow-hidden">
-                  <table className="w-full">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-4 py-2 text-left font-medium text-gray-500">Alumno</th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-500">Fecha</th>
-                        <th className="px-4 py-2 text-left font-medium text-gray-500">Tipo</th>
-                        <th className="px-4 py-2 text-right font-medium text-gray-500">Acciones</th>
+                <div className="overflow-x-auto">
+                  <table className="w-full border-collapse">
+                    <thead>
+                      <tr className="bg-gray-50">
+                        <th className="border p-2 text-left">Hora</th>
+                        <th className="border p-2 text-center">Lunes</th>
+                        <th className="border p-2 text-center">Martes</th>
+                        <th className="border p-2 text-center">Miércoles</th>
+                        <th className="border p-2 text-center">Jueves</th>
+                        <th className="border p-2 text-center">Viernes</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200">
+                    <tbody>
                       <tr>
-                        <td className="px-4 py-3">Acosta, María</td>
-                        <td className="px-4 py-3">15/03/2025</td>
-                        <td className="px-4 py-3">Desempeño académico</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </td>
+                        <td className="border p-2 font-medium">7:30 - 8:10</td>
+                        <td className="border p-2">Matemática I<br /><span className="text-xs text-gray-500">1° Año A</span></td>
+                        <td className="border p-2">-</td>
+                        <td className="border p-2">Matemática II<br /><span className="text-xs text-gray-500">2° Año B</span></td>
+                        <td className="border p-2">-</td>
+                        <td className="border p-2">Matemática III<br /><span className="text-xs text-gray-500">3° Año A</span></td>
                       </tr>
                       <tr>
-                        <td className="px-4 py-3">Córdoba, Lucía</td>
-                        <td className="px-4 py-3">22/03/2025</td>
-                        <td className="px-4 py-3">Desempeño académico</td>
-                        <td className="px-4 py-3 text-right">
-                          <Button variant="ghost" size="sm">
-                            <Eye className="h-4 w-4" />
-                          </Button>
-                        </td>
+                        <td className="border p-2 font-medium">8:10 - 8:50</td>
+                        <td className="border p-2">Matemática I<br /><span className="text-xs text-gray-500">1° Año A</span></td>
+                        <td className="border p-2">-</td>
+                        <td className="border p-2">Matemática II<br /><span className="text-xs text-gray-500">2° Año B</span></td>
+                        <td className="border p-2">-</td>
+                        <td className="border p-2">Matemática III<br /><span className="text-xs text-gray-500">3° Año A</span></td>
+                      </tr>
+                      <tr>
+                        <td className="border p-2 font-medium">8:50 - 9:30</td>
+                        <td className="border p-2">-</td>
+                        <td className="border p-2">Matemática III<br /><span className="text-xs text-gray-500">3° Año A</span></td>
+                        <td className="border p-2">-</td>
+                        <td className="border p-2">Matemática I<br /><span className="text-xs text-gray-500">1° Año A</span></td>
+                        <td className="border p-2">-</td>
                       </tr>
                     </tbody>
                   </table>
-                </div>
-                
-                <div className="mt-4 flex justify-end">
-                  <Button variant="outline" asChild>
-                    <Link to="/informes">
-                      Ver todos los informes
-                    </Link>
-                  </Button>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
         </Tabs>
       </main>
+      
       <Footer />
     </div>
   );

@@ -39,7 +39,7 @@ const Login = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <Alert variant="info" className="bg-blue-50 text-blue-800 border-blue-200">
+            <Alert className="bg-blue-50 text-blue-800 border-blue-200">
               <AlertDescription>
                 Para acceso administrativo, use:
                 <br />

@@ -24,6 +24,7 @@ import EstudiantePerfil from "./pages/estudiantes/EstudiantePerfil";
 import DocentePerfil from "./pages/docentes/DocentePerfil";
 import EstudianteDashboard from "./pages/estudiante/Dashboard";
 import DocenteDashboard from "./pages/docente/Dashboard";
+import UserManagement from "./pages/admin/UserManagement";
 
 const queryClient = new QueryClient();
 
@@ -83,6 +84,16 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['administrador', 'directivo']}>
                   <Docentes />
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Rutas de administración exclusivas para administradores */}
+            <Route 
+              path="/admin/usuarios" 
+              element={
+                <ProtectedRoute allowedRoles={['administrador']}>
+                  <UserManagement />
                 </ProtectedRoute>
               } 
             />
