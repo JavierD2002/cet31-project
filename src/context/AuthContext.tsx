@@ -52,9 +52,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       setLoading(true);
       
-      // En un entorno real, usaríamos supabase.auth.signInWithPassword
-      // Pero aquí simplemente simularemos la autenticación con los datos de Supabase
+      // Usuario administrador predefinido
+      if (email === "admin" && password === "admin") {
+        const adminUser: User = {
+          id: 0,
+          email: "admin@escuela.edu",
+          nombre: "Administrador",
+          apellido: "Sistema",
+          rol: "administrador"
+        };
+        
+        localStorage.setItem('sgcet31_user', JSON.stringify(adminUser));
+        setUser(adminUser);
+        
+        toast({
+          title: "Inicio de sesión exitoso",
+          description: "Bienvenido, Administrador del Sistema",
+        });
+        
+        navigate('/');
+        return;
+      }
       
+      // Continuar con la lógica de autenticación existente para otros usuarios
       const { data, error } = await supabase
         .from('usuarios')
         .select('*')

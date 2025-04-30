@@ -89,7 +89,7 @@ export const getStudentProfile = isSupabaseConfigured
       return {
         id: data.id,
         usuario: {
-          id: data.usuarios?.id,
+          id: data.usuarios?.id || 0,
           dni: data.usuarios?.dni || "",
           nombre: data.usuarios?.nombre || "",
           apellido: data.usuarios?.apellido || "",
