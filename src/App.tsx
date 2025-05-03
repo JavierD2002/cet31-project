@@ -25,6 +25,7 @@ import DocentePerfil from "./pages/docentes/DocentePerfil";
 import EstudianteDashboard from "./pages/estudiante/Dashboard";
 import DocenteDashboard from "./pages/docente/Dashboard";
 import UserManagement from "./pages/admin/UserManagement";
+import UserForm from "./pages/admin/UserForm";
 
 const queryClient = new QueryClient();
 
@@ -94,6 +95,22 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['administrador']}>
                   <UserManagement />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/usuarios/nuevo" 
+              element={
+                <ProtectedRoute allowedRoles={['administrador']}>
+                  <UserForm />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/admin/usuarios/:id/editar" 
+              element={
+                <ProtectedRoute allowedRoles={['administrador']}>
+                  <UserForm isEdit={true} />
                 </ProtectedRoute>
               } 
             />

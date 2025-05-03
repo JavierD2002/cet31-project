@@ -82,6 +82,8 @@ export const getTeacherProfile = isSupabaseConfigured
         .single()
 
       if (error) throw error
+      
+      // Corregido el error de acceso a propiedades
       return {
         id: data.id,
         usuario: {

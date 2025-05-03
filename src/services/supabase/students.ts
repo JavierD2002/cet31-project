@@ -5,11 +5,11 @@ import { supabase, isSupabaseConfigured } from './client';
 const mockGetStudents = async () => {
   console.warn('Supabase not configured: getStudents called with mock implementation')
   return [
-    { id: 1, usuario_id: 201, nombre: "Acosta, María", dni: "45789123", curso: "1° Año A" },
-    { id: 2, usuario_id: 202, nombre: "Benítez, Carlos", dni: "46123789", curso: "1° Año A" },
-    { id: 3, usuario_id: 203, nombre: "Córdoba, Lucía", dni: "45987321", curso: "1° Año A" },
-    { id: 4, usuario_id: 204, nombre: "Díaz, Mateo", dni: "46789123", curso: "1° Año A" },
-    { id: 5, usuario_id: 205, nombre: "Espinoza, Valentina", dni: "45321789", curso: "1° Año A" }
+    { id: 1, usuario_id: 101, nombre: "García, Ana", dni: "45123456", curso: "1° Año A" },
+    { id: 2, usuario_id: 102, nombre: "Martínez, Juan", dni: "45234567", curso: "1° Año A" },
+    { id: 3, usuario_id: 103, nombre: "López, Pedro", dni: "45345678", curso: "2° Año B" },
+    { id: 4, usuario_id: 104, nombre: "Rodríguez, Lucía", dni: "45456789", curso: "2° Año B" },
+    { id: 5, usuario_id: 105, nombre: "Fernández, Sofía", dni: "45567890", curso: "3° Año A" }
   ]
 }
 
@@ -18,24 +18,28 @@ const mockGetStudentProfile = async () => {
   return {
     id: 1,
     usuario: {
-      id: 201,
-      dni: "45789123",
-      nombre: "María",
-      apellido: "Acosta",
-      email: "maria.acosta@estudiante.edu"
+      id: 101,
+      dni: "45123456",
+      nombre: "Ana",
+      apellido: "García",
+      email: "ana.garcia@estudiante.edu"
     },
     curso: "1° Año A",
-    calificaciones: [
-      { asignatura: "Matemática", trimestre1: 8, trimestre2: 9, trimestre3: null },
-      { asignatura: "Lengua", trimestre1: 7, trimestre2: 8, trimestre3: null }
-    ],
-    asistencia: {
-      presente: 45,
-      ausente: 3,
-      tardanza: 2,
-      retirado: 0
-    }
+    asignaturas: [
+      { id: 1, nombre: "Matemática", docente: "González, Juan" },
+      { id: 2, nombre: "Lengua", docente: "Rodríguez, Ana" },
+      { id: 3, nombre: "Historia", docente: "Pérez, Carlos" }
+    ]
   }
+}
+
+const mockGetStudentAbsences = async () => {
+  console.warn('Supabase not configured: getStudentAbsences called with mock implementation')
+  return [
+    { id: 1, fecha: "2025-03-15", estado: "ausente", justificada: false },
+    { id: 2, fecha: "2025-04-02", estado: "tardanza", justificada: true },
+    { id: 3, fecha: "2025-04-10", estado: "ausente", justificada: true }
+  ]
 }
 
 // Export either real or mock functions depending on configuration
@@ -86,6 +90,8 @@ export const getStudentProfile = isSupabaseConfigured
         .single()
 
       if (error) throw error
+      
+      // Corregido el error de acceso a propiedades
       return {
         id: data.id,
         usuario: {
@@ -100,28 +106,14 @@ export const getStudentProfile = isSupabaseConfigured
     }
   : mockGetStudentProfile
 
-const mockGetStudentAbsences = async () => {
-  console.warn('Supabase not configured: getStudentAbsences called with mock implementation')
-  return []
-}
-
 export const getStudentAbsences = isSupabaseConfigured
-  ? async (estudiante_id: number) => {
+  ? async (id: number) => {
       const { data, error } = await supabase
-        .from('asistencias_detalle')
-        .select(`
-          *,
-          asistencias (
-            fecha,
-            asignatura_id,
-            curso
-          )
-        `)
-        .eq('estudiante_id', estudiante_id)
-        .eq('estado', 'ausente')
-        .order('hora_registro', { ascending: false })
+        .from('asistencias')
+        .select('*')
+        .eq('estudiante_id', id)
 
       if (error) throw error
-      return data
+      return data || []
     }
   : mockGetStudentAbsences

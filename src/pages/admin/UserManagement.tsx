@@ -150,10 +150,12 @@ const UserManagement = () => {
                 <CardTitle>Gestión de Usuarios</CardTitle>
                 <CardDescription>Administre todos los usuarios del sistema</CardDescription>
               </div>
-              <Button className="bg-blue-600 hover:bg-blue-700">
-                <UserPlus className="h-4 w-4 mr-2" />
-                Nuevo Usuario
-              </Button>
+              <Link to="/admin/usuarios/nuevo">
+                <Button className="bg-blue-600 hover:bg-blue-700">
+                  <UserPlus className="h-4 w-4 mr-2" />
+                  Nuevo Usuario
+                </Button>
+              </Link>
             </div>
           </CardHeader>
           <CardContent>
@@ -233,7 +235,7 @@ const UserManagement = () => {
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
                             <Button variant="ghost" size="icon" asChild>
-                              <Link to={`/admin/usuarios/${user.id}`}>
+                              <Link to={user.rol === 'docente' ? `/docentes/${user.id}/perfil` : user.rol === 'estudiante' ? `/estudiantes/${user.id}/perfil` : `/admin/usuarios/${user.id}`}>
                                 <User className="h-4 w-4" />
                               </Link>
                             </Button>

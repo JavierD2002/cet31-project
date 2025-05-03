@@ -1,91 +1,92 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { 
-  ChevronLeft, 
-  User, 
-  Mail, 
-  Phone, 
-  GraduationCap, 
-  BookOpen, 
-  FileText,
-  Calendar
-} from 'lucide-react';
-import { useToast } from '@/components/ui/use-toast';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ChevronLeft, Mail, Phone, BookOpen, GraduationCap, School, Calendar, File, Edit, FileText } from 'lucide-react';
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getTeacherProfile } from '@/services/supabase';
+import { getTeacherProfile } from '@/services/supabase/teachers';
 
-// Tipo para el perfil de docente extendido
-type TeacherProfile = {
+interface TeacherAsignatura {
   id: number;
-  usuario: {
-    id: number;
-    dni: string;
-    nombre: string;
-    apellido: string;
-    email: string;
-    telefono?: string;
-  };
-  especialidad: string;
-  cursos: string[];
-  asignaturas: {
-    id: number;
-    nombre: string;
-    curso: string;
-  }[];
-  informes?: {
-    id: number;
-    titulo: string;
-    fecha: string;
-    tipo: string;
-  }[];
-};
+  nombre: string;
+  curso: string;
+}
+
+interface TeacherCourseStudents {
+  curso: string;
+  estudiantes: { id: number; nombre: string }[];
+}
 
 const DocentePerfil = () => {
-  const { id } = useParams<{ id: string }>();
-  const [teacher, setTeacher] = useState<TeacherProfile | null>(null);
+  const { id } = useParams();
   const [loading, setLoading] = useState(true);
+  const [teacherData, setTeacherData] = useState<any>(null);
   const { toast } = useToast();
   
+  const [asignaturas, setAsignaturas] = useState<TeacherAsignatura[]>([
+    { id: 1, nombre: "Matemática I", curso: "1° Año A" },
+    { id: 2, nombre: "Matemática II", curso: "2° Año B" },
+    { id: 3, nombre: "Matemática III", curso: "3° Año A" }
+  ]);
+  
+  const [cursos, setCursos] = useState<string[]>(["1° Año A", "2° Año B", "3° Año A"]);
+  
+  const [courseStudents, setCourseStudents] = useState<TeacherCourseStudents[]>([
+    {
+      curso: "1° Año A",
+      estudiantes: [
+        { id: 1, nombre: "García, Ana" },
+        { id: 2, nombre: "Martínez, Juan" },
+        { id: 3, nombre: "Rodríguez, Lucía" }
+      ]
+    },
+    {
+      curso: "2° Año B",
+      estudiantes: [
+        { id: 4, nombre: "López, Pedro" },
+        { id: 5, nombre: "Fernández, Sofía" }
+      ]
+    },
+    {
+      curso: "3° Año A",
+      estudiantes: [
+        { id: 6, nombre: "González, Mateo" },
+        { id: 7, nombre: "Pérez, Valentina" }
+      ]
+    }
+  ]);
+  
+  const [informes, setInformes] = useState([
+    { id: 1, titulo: "Evaluación del primer trimestre", fecha: "15/04/2025", tipo: "Desempeño académico", curso: "1° Año A", estudiante: "García, Ana" },
+    { id: 2, titulo: "Evaluación del primer trimestre", fecha: "15/04/2025", tipo: "Desempeño académico", curso: "1° Año A", estudiante: "Martínez, Juan" },
+    { id: 3, titulo: "Informe de rendimiento", fecha: "20/04/2025", tipo: "Comportamiento", curso: "2° Año B", estudiante: "López, Pedro" }
+  ]);
+
   useEffect(() => {
     const fetchTeacherData = async () => {
       try {
-        // Cargamos los datos base del docente
-        const profileData = await getTeacherProfile(Number(id));
+        if (!id) return;
         
-        // Extendemos con datos ficticios para esta demostración
-        // En un sistema real, estos datos vendrían de diferentes endpoints
-        const extendedData: TeacherProfile = {
-          ...profileData,
-          cursos: ["1° Año A", "2° Año B", "3° Año A"],
-          asignaturas: [
-            { id: 1, nombre: "Matemática I", curso: "1° Año A" },
-            { id: 2, nombre: "Matemática II", curso: "2° Año B" },
-            { id: 3, nombre: "Matemática III", curso: "3° Año A" }
-          ],
-          informes: [
-            { id: 1, titulo: "Informe trimestral 1° Año A", fecha: "2025-04-10", tipo: "Trimestral" },
-            { id: 2, titulo: "Seguimiento adaptaciones curriculares", fecha: "2025-03-15", tipo: "Especial" }
-          ]
-        };
-        
-        setTeacher(extendedData);
+        const data = await getTeacherProfile(Number(id));
+        setTeacherData(data);
       } catch (error) {
-        console.error("Error al cargar el perfil del docente:", error);
+        console.error("Error al cargar los datos del docente:", error);
         toast({
           title: "Error",
-          description: "No se pudo cargar la información del docente",
+          description: "No se pudieron cargar los datos del docente",
           variant: "destructive",
         });
       } finally {
@@ -93,44 +94,61 @@ const DocentePerfil = () => {
       }
     };
 
-    if (id) {
-      fetchTeacherData();
-    }
+    fetchTeacherData();
   }, [id, toast]);
+
+  // Iniciales para el avatar
+  const getInitials = () => {
+    if (!teacherData) return "??";
+    return `${teacherData.usuario.nombre.charAt(0)}${teacherData.usuario.apellido.charAt(0)}`;
+  };
 
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="container mx-auto py-8 px-4">
-          <div className="flex justify-center items-center h-64">
-            <div className="h-12 w-12 animate-spin rounded-full border-4 border-blue-600 border-r-transparent"></div>
-            <span className="ml-3 text-lg font-medium">Cargando perfil...</span>
+        <div className="container mx-auto py-12 px-4">
+          <div className="flex justify-center items-center mb-8">
+            <Skeleton className="h-12 w-40" />
           </div>
-        </main>
+          <Card>
+            <CardHeader>
+              <Skeleton className="h-12 w-3/4 mb-2" />
+              <Skeleton className="h-6 w-1/2" />
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-col md:flex-row gap-8">
+                <div className="md:w-1/3">
+                  <Skeleton className="h-48 w-full mb-4 rounded-xl" />
+                  <Skeleton className="h-8 w-3/4 mb-2" />
+                  <Skeleton className="h-8 w-full mb-2" />
+                  <Skeleton className="h-8 w-full" />
+                </div>
+                <div className="md:w-2/3">
+                  <Skeleton className="h-10 w-full mb-4" />
+                  <Skeleton className="h-32 w-full mb-4" />
+                  <Skeleton className="h-32 w-full" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
         <Footer />
       </div>
     );
   }
 
-  if (!teacher) {
+  if (!teacherData) {
     return (
       <div className="min-h-screen bg-gray-50">
         <Header />
-        <main className="container mx-auto py-8 px-4">
-          <Card>
-            <CardContent className="pt-6 text-center">
-              <div className="flex flex-col items-center justify-center py-12">
-                <User className="h-16 w-16 text-gray-300" />
-                <h2 className="mt-4 text-2xl font-bold">Docente no encontrado</h2>
-                <p className="mt-2 text-gray-500">El perfil que buscas no existe o ha sido eliminado.</p>
-                <Button asChild className="mt-6">
-                  <Link to="/docentes">Volver a la lista de docentes</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </main>
+        <div className="container mx-auto py-12 px-4 text-center">
+          <h1 className="text-2xl font-bold mb-4">Docente no encontrado</h1>
+          <p className="mb-6">No se encontró información del docente solicitado.</p>
+          <Link to="/docentes">
+            <Button>Volver al Listado</Button>
+          </Link>
+        </div>
         <Footer />
       </div>
     );
@@ -144,190 +162,207 @@ const DocentePerfil = () => {
         <div className="container mx-auto">
           <Link to="/docentes" className="text-blue-600 hover:underline flex items-center">
             <ChevronLeft className="h-4 w-4 mr-1" />
-            Volver a la lista de docentes
+            Volver al listado de docentes
           </Link>
         </div>
       </nav>
-      
-      <main className="container mx-auto py-8 px-4">
-        {/* Perfil superior */}
-        <Card className="mb-6">
-          <CardContent className="p-6">
-            <div className="flex flex-col md:flex-row gap-6 items-center md:items-start">
-              <Avatar className="h-24 w-24">
-                <AvatarFallback className="text-2xl bg-blue-100 text-blue-600">
-                  {teacher.usuario.nombre[0]}{teacher.usuario.apellido[0]}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 text-center md:text-left">
-                <h2 className="text-2xl font-bold">{teacher.usuario.apellido}, {teacher.usuario.nombre}</h2>
-                <p className="text-gray-500">Docente - {teacher.especialidad}</p>
+
+      <div className="container mx-auto py-8 px-4">
+        <Card className="mb-8">
+          <CardHeader>
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+              <div>
+                <CardTitle className="text-2xl">Perfil del Docente</CardTitle>
+                <CardDescription>Información completa del docente</CardDescription>
+              </div>
+              <Button variant="outline">
+                <Edit className="h-4 w-4 mr-2" />
+                Editar Perfil
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Información básica del docente */}
+              <div className="md:w-1/3">
+                <div className="flex flex-col items-center text-center mb-6">
+                  <Avatar className="h-32 w-32 mb-4">
+                    <AvatarFallback className="text-3xl bg-blue-600 text-white">
+                      {getInitials()}
+                    </AvatarFallback>
+                  </Avatar>
+                  <h2 className="text-xl font-semibold">
+                    {teacherData.usuario.nombre} {teacherData.usuario.apellido}
+                  </h2>
+                  <Badge className="mt-2 bg-blue-100 text-blue-800 hover:bg-blue-200">
+                    Docente
+                  </Badge>
+                </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 text-blue-600 mr-2" />
-                    <span>DNI: {teacher.usuario.dni}</span>
+                <div className="space-y-3 bg-gray-50 p-4 rounded-lg">
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">DNI</p>
+                    <p className="font-medium">{teacherData.usuario.dni}</p>
                   </div>
-                  <div className="flex items-center">
-                    <Mail className="h-4 w-4 text-blue-600 mr-2" />
-                    <span>{teacher.usuario.email}</span>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Email</p>
+                    <div className="flex items-center">
+                      <Mail className="h-4 w-4 mr-2 text-gray-500" />
+                      <p className="font-medium">{teacherData.usuario.email}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <Phone className="h-4 w-4 text-blue-600 mr-2" />
-                    <span>{teacher.usuario.telefono || 'No registrado'}</span>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Especialidad</p>
+                    <div className="flex items-center">
+                      <GraduationCap className="h-4 w-4 mr-2 text-gray-500" />
+                      <p className="font-medium">{teacherData.especialidad}</p>
+                    </div>
                   </div>
-                  <div className="flex items-center">
-                    <GraduationCap className="h-4 w-4 text-blue-600 mr-2" />
-                    <span>{teacher.especialidad}</span>
+                  <div>
+                    <p className="text-sm text-gray-500 mb-1">Cursos a cargo</p>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {cursos.map((curso, index) => (
+                        <Badge key={index} variant="outline" className="bg-gray-100">
+                          {curso}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 </div>
               </div>
               
-              <div className="flex flex-col gap-2">
-                <Button variant="outline">Editar perfil</Button>
+              {/* Pestañas con información detallada */}
+              <div className="md:w-2/3">
+                <Tabs defaultValue="asignaturas">
+                  <TabsList className="grid grid-cols-3 mb-4">
+                    <TabsTrigger value="asignaturas">Asignaturas</TabsTrigger>
+                    <TabsTrigger value="estudiantes">Estudiantes</TabsTrigger>
+                    <TabsTrigger value="informes">Informes</TabsTrigger>
+                  </TabsList>
+                  
+                  {/* Pestaña de Asignaturas */}
+                  <TabsContent value="asignaturas">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <BookOpen className="h-5 w-5 mr-2 text-blue-600" />
+                          Asignaturas a cargo
+                        </CardTitle>
+                        <CardDescription>
+                          Asignaturas que imparte el docente en diferentes cursos
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-4">
+                          {asignaturas.map((asignatura) => (
+                            <div key={asignatura.id} className="border rounded-md p-4 flex justify-between hover:bg-gray-50">
+                              <div>
+                                <p className="font-medium">{asignatura.nombre}</p>
+                                <p className="text-sm text-gray-500">{asignatura.curso}</p>
+                              </div>
+                              <div className="flex space-x-2">
+                                <Button variant="outline" size="sm">
+                                  <Calendar className="h-4 w-4 mr-1" />
+                                  Asistencia
+                                </Button>
+                                <Button variant="outline" size="sm">
+                                  <File className="h-4 w-4 mr-1" />
+                                  Calificaciones
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  {/* Pestaña de Estudiantes */}
+                  <TabsContent value="estudiantes">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-lg flex items-center">
+                          <School className="h-5 w-5 mr-2 text-blue-600" />
+                          Estudiantes por curso
+                        </CardTitle>
+                        <CardDescription>
+                          Listado de estudiantes por cada curso a cargo del docente
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-6">
+                          {courseStudents.map((item, index) => (
+                            <div key={index}>
+                              <h3 className="font-medium mb-2 bg-gray-100 px-3 py-1 rounded">
+                                {item.curso}
+                              </h3>
+                              <div className="space-y-2">
+                                {item.estudiantes.map((estudiante) => (
+                                  <div key={estudiante.id} className="border rounded-md p-3 flex justify-between hover:bg-gray-50">
+                                    <span>{estudiante.nombre}</span>
+                                    <Link to={`/estudiantes/${estudiante.id}/perfil`}>
+                                      <Button variant="ghost" size="sm">
+                                        Ver perfil
+                                      </Button>
+                                    </Link>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                  
+                  {/* Pestaña de Informes */}
+                  <TabsContent value="informes">
+                    <Card>
+                      <CardHeader>
+                        <div className="flex justify-between items-center">
+                          <div>
+                            <CardTitle className="text-lg flex items-center">
+                              <FileText className="h-5 w-5 mr-2 text-blue-600" />
+                              Informes pedagógicos
+                            </CardTitle>
+                            <CardDescription>
+                              Informes realizados por el docente
+                            </CardDescription>
+                          </div>
+                          <Button size="sm">Nuevo informe</Button>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-3">
+                          {informes.map((informe) => (
+                            <div key={informe.id} className="border rounded-md p-3 hover:bg-gray-50">
+                              <div className="flex justify-between">
+                                <div>
+                                  <p className="font-medium">{informe.titulo}</p>
+                                  <p className="text-sm text-gray-500">
+                                    {informe.estudiante} - {informe.curso}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <Badge variant="outline" className="mb-1">
+                                    {informe.tipo}
+                                  </Badge>
+                                  <p className="text-xs text-gray-500">{informe.fecha}</p>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </TabsContent>
+                </Tabs>
               </div>
             </div>
           </CardContent>
         </Card>
-        
-        {/* Tabs de información */}
-        <Tabs defaultValue="asignaturas">
-          <TabsList className="grid grid-cols-3 mb-8">
-            <TabsTrigger value="asignaturas" className="flex items-center gap-2">
-              <BookOpen className="h-4 w-4" />
-              <span className="hidden sm:inline">Asignaturas</span>
-            </TabsTrigger>
-            <TabsTrigger value="informes" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              <span className="hidden sm:inline">Informes</span>
-            </TabsTrigger>
-            <TabsTrigger value="horarios" className="flex items-center gap-2">
-              <Calendar className="h-4 w-4" />
-              <span className="hidden sm:inline">Horarios</span>
-            </TabsTrigger>
-          </TabsList>
-          
-          {/* Contenido: Asignaturas */}
-          <TabsContent value="asignaturas">
-            <Card>
-              <CardHeader>
-                <CardTitle>Asignaturas a cargo</CardTitle>
-                <CardDescription>Materias dictadas por el docente en el ciclo lectivo actual</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {teacher.asignaturas.map((asignatura) => (
-                    <Card key={asignatura.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-medium">{asignatura.nombre}</h3>
-                            <p className="text-sm text-gray-500">{asignatura.curso}</p>
-                          </div>
-                          <Button variant="ghost" size="sm" asChild>
-                            <Link to={`/asignaturas/${asignatura.id}`}>
-                              Ver detalles
-                            </Link>
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Contenido: Informes */}
-          <TabsContent value="informes">
-            <Card>
-              <CardHeader>
-                <CardTitle>Informes pedagógicos</CardTitle>
-                <CardDescription>Informes elaborados por el docente</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {teacher.informes && teacher.informes.length > 0 ? (
-                  <div className="space-y-4">
-                    {teacher.informes.map((informe) => (
-                      <div key={informe.id} className="p-4 border rounded-lg">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{informe.titulo}</h3>
-                            <p className="text-sm text-gray-500">
-                              {new Date(informe.fecha).toLocaleDateString('es-AR')} - {informe.tipo}
-                            </p>
-                          </div>
-                          <Button variant="outline" size="sm">Ver informe</Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-12 text-gray-500">
-                    <FileText className="mx-auto h-12 w-12 text-gray-300" />
-                    <h3 className="mt-4 text-lg font-medium">No hay informes registrados</h3>
-                    <p className="mt-2">El docente no ha registrado informes pedagógicos aún.</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          {/* Contenido: Horarios */}
-          <TabsContent value="horarios">
-            <Card>
-              <CardHeader>
-                <CardTitle>Horarios de clase</CardTitle>
-                <CardDescription>Horarios asignados al docente</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="overflow-x-auto">
-                  <table className="w-full border-collapse">
-                    <thead>
-                      <tr className="bg-gray-50">
-                        <th className="border p-2 text-left">Hora</th>
-                        <th className="border p-2 text-center">Lunes</th>
-                        <th className="border p-2 text-center">Martes</th>
-                        <th className="border p-2 text-center">Miércoles</th>
-                        <th className="border p-2 text-center">Jueves</th>
-                        <th className="border p-2 text-center">Viernes</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr>
-                        <td className="border p-2 font-medium">7:30 - 8:10</td>
-                        <td className="border p-2">Matemática I<br /><span className="text-xs text-gray-500">1° Año A</span></td>
-                        <td className="border p-2">-</td>
-                        <td className="border p-2">Matemática II<br /><span className="text-xs text-gray-500">2° Año B</span></td>
-                        <td className="border p-2">-</td>
-                        <td className="border p-2">Matemática III<br /><span className="text-xs text-gray-500">3° Año A</span></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2 font-medium">8:10 - 8:50</td>
-                        <td className="border p-2">Matemática I<br /><span className="text-xs text-gray-500">1° Año A</span></td>
-                        <td className="border p-2">-</td>
-                        <td className="border p-2">Matemática II<br /><span className="text-xs text-gray-500">2° Año B</span></td>
-                        <td className="border p-2">-</td>
-                        <td className="border p-2">Matemática III<br /><span className="text-xs text-gray-500">3° Año A</span></td>
-                      </tr>
-                      <tr>
-                        <td className="border p-2 font-medium">8:50 - 9:30</td>
-                        <td className="border p-2">-</td>
-                        <td className="border p-2">Matemática III<br /><span className="text-xs text-gray-500">3° Año A</span></td>
-                        <td className="border p-2">-</td>
-                        <td className="border p-2">Matemática I<br /><span className="text-xs text-gray-500">1° Año A</span></td>
-                        <td className="border p-2">-</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </main>
-      
+      </div>
+
       <Footer />
     </div>
   );
