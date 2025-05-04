@@ -83,7 +83,7 @@ export const getTeacherProfile = isSupabaseConfigured
 
       if (error) throw error
       
-      // Corregido el error de acceso a propiedades
+      // Fix: Access data.usuarios as a single object, not an array
       return {
         id: data.id,
         usuario: {

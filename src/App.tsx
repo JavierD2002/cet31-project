@@ -24,7 +24,7 @@ import EstudiantePerfil from "./pages/estudiantes/EstudiantePerfil";
 import DocentePerfil from "./pages/docentes/DocentePerfil";
 import EstudianteDashboard from "./pages/estudiante/Dashboard";
 import DocenteDashboard from "./pages/docente/Dashboard";
-import UserManagement from "./pages/admin/UserManagement";
+import UserManagement from "./pages/admin/users/UserManagement";
 import UserForm from "./pages/admin/UserForm";
 
 const queryClient = new QueryClient();
