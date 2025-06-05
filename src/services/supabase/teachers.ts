@@ -70,7 +70,7 @@ export const getTeacherProfile = isSupabaseConfigured
         .select(`
           id,
           especialidad,
-          usuarios (
+          usuarios!inner (
             id,
             dni,
             nombre,
@@ -84,14 +84,15 @@ export const getTeacherProfile = isSupabaseConfigured
       if (error) throw error
       
       // Fix: Access data.usuarios as a single object, not an array
+      const usuario = data.usuarios as any;
       return {
         id: data.id,
         usuario: {
-          id: data.usuarios?.id || 0,
-          dni: data.usuarios?.dni || "",
-          nombre: data.usuarios?.nombre || "",
-          apellido: data.usuarios?.apellido || "",
-          email: data.usuarios?.email || ""
+          id: usuario?.id || 0,
+          dni: usuario?.dni || "",
+          nombre: usuario?.nombre || "",
+          apellido: usuario?.apellido || "",
+          email: usuario?.email || ""
         },
         especialidad: data.especialidad
       }
