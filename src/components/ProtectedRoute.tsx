@@ -14,8 +14,22 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children, 
   allowedRoles = ['administrador', 'directivo', 'docente', 'estudiante'] 
 }) => {
-  const { isAuthenticated, loading, hasRole } = useAuth();
+  console.log('ProtectedRoute rendering...');
+  
+  let authData;
+  try {
+    authData = useAuth();
+    console.log('useAuth successful:', authData);
+  } catch (error) {
+    console.error('useAuth error:', error);
+    // Si hay error con useAuth, redirigir al login
+    return <Navigate to="/login" replace />;
+  }
+
+  const { isAuthenticated, loading, hasRole } = authData;
   const location = useLocation();
+
+  console.log('Auth state:', { isAuthenticated, loading, hasRole: typeof hasRole });
 
   // Si está cargando, mostrar un indicador de carga
   if (loading) {

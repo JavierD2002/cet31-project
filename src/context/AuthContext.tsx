@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, getMockUsers } from '@/services/supabase';
@@ -25,6 +24,8 @@ type AuthContextType = {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  console.log('AuthProvider rendering...');
+  
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -32,16 +33,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Verificar sesión al cargar
   useEffect(() => {
+    console.log('AuthProvider useEffect running...');
     const checkSession = async () => {
       try {
         const storedUser = localStorage.getItem('sgcet31_user');
         if (storedUser) {
+          console.log('Found stored user:', storedUser);
           setUser(JSON.parse(storedUser));
+        } else {
+          console.log('No stored user found');
         }
       } catch (error) {
         console.error("Error al verificar la sesión:", error);
       } finally {
         setLoading(false);
+        console.log('Auth loading finished');
       }
     };
 
@@ -156,23 +162,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return user.rol === roles;
   };
 
+  const contextValue = { 
+    user, 
+    loading, 
+    login, 
+    logout, 
+    isAuthenticated: !!user,
+    hasRole 
+  };
+
+  console.log('AuthProvider contextValue:', contextValue);
+
   return (
-    <AuthContext.Provider value={{ 
-      user, 
-      loading, 
-      login, 
-      logout, 
-      isAuthenticated: !!user,
-      hasRole 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
 };
 
 export const useAuth = () => {
+  console.log('useAuth called...');
   const context = useContext(AuthContext);
+  console.log('useAuth context:', context);
+  
   if (context === undefined) {
+    console.error('useAuth error: context is undefined');
     throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   }
   return context;
