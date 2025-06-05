@@ -136,7 +136,64 @@ export interface Database {
           created_at?: string
         }
       }
+      asignaturas: {
+        Row: {
+          id: number
+          nombre: string
+          curso: string
+          docente_id: number | null
+          descripcion: string | null
+          carga_horaria: number
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          nombre: string
+          curso: string
+          docente_id?: number | null
+          descripcion?: string | null
+          carga_horaria: number
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          nombre?: string
+          curso?: string
+          docente_id?: number | null
+          descripcion?: string | null
+          carga_horaria?: number
+          created_at?: string
+        }
+      }
+      aulas: {
+        Row: {
+          id: number
+          nombre: string
+          capacidad: number
+          ubicacion: string
+          recursos: string | null
+          activa: boolean
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          nombre: string
+          capacidad: number
+          ubicacion: string
+          recursos?: string | null
+          activa?: boolean
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          nombre?: string
+          capacidad?: number
+          ubicacion?: string
+          recursos?: string | null
+          activa?: boolean
+          created_at?: string
+        }
+      }
     }
   }
 }
-

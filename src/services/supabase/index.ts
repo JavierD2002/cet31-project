@@ -15,3 +15,19 @@ export {
   getAttendanceHistory, 
   getAttendanceDetails 
 } from './attendance';
+
+// Subjects
+export {
+  getSubjects,
+  createSubject,
+  updateSubject,
+  deleteSubject
+} from './subjects';
+
+// Classrooms
+export {
+  getClassrooms,
+  createClassroom,
+  updateClassroom,
+  deleteClassroom
+} from './classrooms';
