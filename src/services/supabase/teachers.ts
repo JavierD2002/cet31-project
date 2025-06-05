@@ -34,6 +34,21 @@ const mockGetTeacherProfile = async () => {
   }
 }
 
+const mockCreateTeacher = async (data: any) => {
+  console.warn('Supabase not configured: createTeacher called with mock implementation', data)
+  return { id: Math.floor(Math.random() * 1000), ...data, created_at: new Date().toISOString() }
+}
+
+const mockUpdateTeacher = async (id: number, data: any) => {
+  console.warn('Supabase not configured: updateTeacher called with mock implementation', id, data)
+  return { id, ...data, updated_at: new Date().toISOString() }
+}
+
+const mockDeleteTeacher = async (id: number) => {
+  console.warn('Supabase not configured: deleteTeacher called with mock implementation', id)
+  return { id }
+}
+
 // Export either real or mock functions depending on configuration
 export const getTeachers = isSupabaseConfigured
   ? async () => {
@@ -44,7 +59,7 @@ export const getTeachers = isSupabaseConfigured
           dni,
           nombre,
           apellido,
-          docentes (
+          docentes!inner (
             id,
             especialidad
           )
@@ -83,7 +98,6 @@ export const getTeacherProfile = isSupabaseConfigured
 
       if (error) throw error
       
-      // Fix: Access data.usuarios as a single object, not an array
       const usuario = data.usuarios as any;
       return {
         id: data.id,
@@ -98,3 +112,123 @@ export const getTeacherProfile = isSupabaseConfigured
       }
     }
   : mockGetTeacherProfile
+
+export const createTeacher = isSupabaseConfigured
+  ? async (data: {
+      dni: string;
+      nombre: string;
+      apellido: string;
+      email: string;
+      especialidad: string;
+    }) => {
+      // First create user
+      const { data: usuario, error: userError } = await supabase
+        .from('usuarios')
+        .insert({
+          dni: data.dni,
+          nombre: data.nombre,
+          apellido: data.apellido,
+          email: data.email,
+          rol: 'docente'
+        })
+        .select()
+        .single()
+
+      if (userError) throw userError
+
+      // Then create teacher
+      const { data: docente, error: teacherError } = await supabase
+        .from('docentes')
+        .insert({
+          usuario_id: usuario.id,
+          especialidad: data.especialidad
+        })
+        .select()
+        .single()
+
+      if (teacherError) throw teacherError
+
+      return docente
+    }
+  : mockCreateTeacher
+
+export const updateTeacher = isSupabaseConfigured
+  ? async (id: number, data: {
+      dni?: string;
+      nombre?: string;
+      apellido?: string;
+      email?: string;
+      especialidad?: string;
+    }) => {
+      // Get teacher with user info
+      const { data: teacher, error: getError } = await supabase
+        .from('docentes')
+        .select('usuario_id')
+        .eq('id', id)
+        .single()
+
+      if (getError) throw getError
+
+      // Update user data if provided
+      if (data.dni || data.nombre || data.apellido || data.email) {
+        const userData: any = {}
+        if (data.dni) userData.dni = data.dni
+        if (data.nombre) userData.nombre = data.nombre
+        if (data.apellido) userData.apellido = data.apellido
+        if (data.email) userData.email = data.email
+
+        const { error: userError } = await supabase
+          .from('usuarios')
+          .update(userData)
+          .eq('id', teacher.usuario_id)
+
+        if (userError) throw userError
+      }
+
+      // Update teacher data if provided
+      if (data.especialidad) {
+        const { data: updatedTeacher, error: teacherError } = await supabase
+          .from('docentes')
+          .update({ especialidad: data.especialidad })
+          .eq('id', id)
+          .select()
+          .single()
+
+        if (teacherError) throw teacherError
+        return updatedTeacher
+      }
+
+      return { id }
+    }
+  : mockUpdateTeacher
+
+export const deleteTeacher = isSupabaseConfigured
+  ? async (id: number) => {
+      // Get teacher with user info
+      const { data: teacher, error: getError } = await supabase
+        .from('docentes')
+        .select('usuario_id')
+        .eq('id', id)
+        .single()
+
+      if (getError) throw getError
+
+      // Delete teacher first (due to foreign key)
+      const { error: teacherError } = await supabase
+        .from('docentes')
+        .delete()
+        .eq('id', id)
+
+      if (teacherError) throw teacherError
+
+      // Delete user
+      const { error: userError } = await supabase
+        .from('usuarios')
+        .delete()
+        .eq('id', teacher.usuario_id)
+
+      if (userError) throw userError
+
+      return { id }
+    }
+  : mockDeleteTeacher

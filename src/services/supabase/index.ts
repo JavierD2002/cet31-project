@@ -4,10 +4,23 @@ export { supabase, isSupabaseConfigured } from './client';
 export { getMockUsers } from './mockUsers';
 
 // Teachers
-export { getTeachers, getTeacherProfile } from './teachers';
+export { 
+  getTeachers, 
+  getTeacherProfile,
+  createTeacher,
+  updateTeacher,
+  deleteTeacher
+} from './teachers';
 
 // Students
-export { getStudents, getStudentProfile, getStudentAbsences } from './students';
+export { 
+  getStudents, 
+  getStudentProfile, 
+  getStudentAbsences,
+  createStudent,
+  updateStudent,
+  deleteStudent
+} from './students';
 
 // Attendance
 export { 
