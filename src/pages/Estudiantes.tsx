@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Search, Eye, User, FileText } from 'lucide-react';
+import { ChevronLeft, Search, Eye, User, FileText, Edit, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,12 +17,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getStudents } from '@/services/supabase';
+import StudentForm from '@/components/students/StudentForm';
+import { getStudents, createStudent, updateStudent, deleteStudent } from '@/services/supabase';
 import { useAuth } from '@/context/AuthContext';
 
 type Student = {
@@ -37,29 +48,110 @@ const Estudiantes = () => {
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const { toast } = useToast();
   const { hasRole } = useAuth();
   const canCreateStudent = hasRole(['administrador', 'directivo']);
+  const canEditStudent = hasRole(['administrador', 'directivo']);
+  const canDeleteStudent = hasRole(['administrador']);
 
   useEffect(() => {
-    const fetchStudents = async () => {
-      try {
-        const data = await getStudents();
-        setStudents(data as Student[]);
-      } catch (error) {
-        console.error("Error al cargar estudiantes:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los estudiantes",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchStudents();
-  }, [toast]);
+  }, []);
+
+  const fetchStudents = async () => {
+    try {
+      setLoading(true);
+      const data = await getStudents();
+      setStudents(data as Student[]);
+    } catch (error) {
+      console.error("Error al cargar estudiantes:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los estudiantes",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateStudent = async (data: any) => {
+    try {
+      await createStudent(data);
+      toast({
+        title: "Éxito",
+        description: "Estudiante creado exitosamente",
+      });
+      fetchStudents();
+    } catch (error) {
+      console.error("Error al crear estudiante:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo crear el estudiante",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUpdateStudent = async (data: any) => {
+    try {
+      if (!editingStudent) return;
+      await updateStudent(editingStudent.id, data);
+      toast({
+        title: "Éxito",
+        description: "Estudiante actualizado exitosamente",
+      });
+      fetchStudents();
+      setEditingStudent(null);
+    } catch (error) {
+      console.error("Error al actualizar estudiante:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo actualizar el estudiante",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteStudent = async () => {
+    try {
+      if (!studentToDelete) return;
+      await deleteStudent(studentToDelete.id);
+      toast({
+        title: "Éxito",
+        description: "Estudiante eliminado exitosamente",
+      });
+      fetchStudents();
+      setDeleteDialogOpen(false);
+      setStudentToDelete(null);
+    } catch (error) {
+      console.error("Error al eliminar estudiante:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el estudiante",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const openCreateForm = () => {
+    setEditingStudent(null);
+    setFormOpen(true);
+  };
+
+  const openEditForm = (student: Student) => {
+    setEditingStudent(student);
+    setFormOpen(true);
+  };
+
+  const openDeleteDialog = (student: Student) => {
+    setStudentToDelete(student);
+    setDeleteDialogOpen(true);
+  };
 
   const filteredStudents = students.filter(
     (student) =>
@@ -89,7 +181,7 @@ const Estudiantes = () => {
                 <CardDescription>Administrar información de estudiantes</CardDescription>
               </div>
               {canCreateStudent && (
-                <Button variant="outline">
+                <Button onClick={openCreateForm}>
                   <User className="h-4 w-4 mr-2" />
                   Nuevo Estudiante
                 </Button>
@@ -152,6 +244,27 @@ const Estudiantes = () => {
                                 Asistencia
                               </Link>
                             </Button>
+                            {canEditStudent && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => openEditForm(student)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Editar
+                              </Button>
+                            )}
+                            {canDeleteStudent && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => openDeleteDialog(student)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Eliminar
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -169,6 +282,33 @@ const Estudiantes = () => {
           </CardContent>
         </Card>
       </main>
+
+      <StudentForm
+        open={formOpen}
+        onOpenChange={setFormOpen}
+        onSubmit={editingStudent ? handleUpdateStudent : handleCreateStudent}
+        initialData={editingStudent}
+        title={editingStudent ? "Editar Estudiante" : "Nuevo Estudiante"}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente al estudiante
+              {studentToDelete && ` ${studentToDelete.nombre}`} y todos sus datos asociados.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDeleteStudent} className="bg-red-600 hover:bg-red-700">
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </div>
   );

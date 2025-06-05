@@ -71,22 +71,9 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
   };
 
   const especialidades = [
-    "Matemática",
-    "Lengua y Literatura",
-    "Historia",
-    "Geografía",
-    "Física",
-    "Química",
-    "Biología",
-    "Inglés",
-    "Educación Física",
-    "Arte",
-    "Música",
-    "Tecnología",
-    "Filosofía",
-    "Psicología",
-    "Economía",
-    "Informática"
+    "Matemáticas", "Lengua y Literatura", "Historia", "Geografía",
+    "Ciencias Naturales", "Física", "Química", "Biología",
+    "Educación Física", "Arte", "Música", "Inglés", "Informática"
   ];
 
   return (
@@ -107,7 +94,7 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
               {...register('dni', { required: 'El DNI es requerido' })}
             />
             {errors.dni && (
-              <p className="text-sm text-red-500">{errors.dni.message}</p>
+              <p className="text-sm text-red-500">{errors.dni.message as string}</p>
             )}
           </div>
 
@@ -119,7 +106,7 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
               {...register('nombre', { required: 'El nombre es requerido' })}
             />
             {errors.nombre && (
-              <p className="text-sm text-red-500">{errors.nombre.message}</p>
+              <p className="text-sm text-red-500">{errors.nombre.message as string}</p>
             )}
           </div>
 
@@ -127,11 +114,11 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
             <Label htmlFor="apellido">Apellido</Label>
             <Input
               id="apellido"
-              placeholder="González"
+              placeholder="Pérez"
               {...register('apellido', { required: 'El apellido es requerido' })}
             />
             {errors.apellido && (
-              <p className="text-sm text-red-500">{errors.apellido.message}</p>
+              <p className="text-sm text-red-500">{errors.apellido.message as string}</p>
             )}
           </div>
 
@@ -140,7 +127,7 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
             <Input
               id="email"
               type="email"
-              placeholder="juan.gonzalez@docente.edu"
+              placeholder="juan.perez@colegio.edu"
               {...register('email', { 
                 required: 'El email es requerido',
                 pattern: {
@@ -150,7 +137,7 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
               })}
             />
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
+              <p className="text-sm text-red-500">{errors.email.message as string}</p>
             )}
           </div>
 
@@ -172,7 +159,7 @@ const TeacherForm: React.FC<TeacherFormProps> = ({
               </SelectContent>
             </Select>
             {errors.especialidad && (
-              <p className="text-sm text-red-500">{errors.especialidad.message}</p>
+              <p className="text-sm text-red-500">{errors.especialidad.message as string}</p>
             )}
           </div>
 

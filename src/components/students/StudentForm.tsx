@@ -97,7 +97,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               {...register('dni', { required: 'El DNI es requerido' })}
             />
             {errors.dni && (
-              <p className="text-sm text-red-500">{errors.dni.message}</p>
+              <p className="text-sm text-red-500">{errors.dni.message as string}</p>
             )}
           </div>
 
@@ -109,7 +109,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               {...register('nombre', { required: 'El nombre es requerido' })}
             />
             {errors.nombre && (
-              <p className="text-sm text-red-500">{errors.nombre.message}</p>
+              <p className="text-sm text-red-500">{errors.nombre.message as string}</p>
             )}
           </div>
 
@@ -121,7 +121,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               {...register('apellido', { required: 'El apellido es requerido' })}
             />
             {errors.apellido && (
-              <p className="text-sm text-red-500">{errors.apellido.message}</p>
+              <p className="text-sm text-red-500">{errors.apellido.message as string}</p>
             )}
           </div>
 
@@ -140,7 +140,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               })}
             />
             {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
+              <p className="text-sm text-red-500">{errors.email.message as string}</p>
             )}
           </div>
 
@@ -162,7 +162,7 @@ const StudentForm: React.FC<StudentFormProps> = ({
               </SelectContent>
             </Select>
             {errors.curso && (
-              <p className="text-sm text-red-500">{errors.curso.message}</p>
+              <p className="text-sm text-red-500">{errors.curso.message as string}</p>
             )}
           </div>
 
