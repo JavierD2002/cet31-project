@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Plus, Edit, Trash2, Search } from 'lucide-react';
+import { ChevronLeft, Plus, Edit, Trash2, Search, MapPin, Users, Wifi } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
@@ -36,6 +36,7 @@ import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import ClassroomForm from '@/components/classrooms/ClassroomForm';
 import { getClassrooms, createClassroom, updateClassroom, deleteClassroom } from '@/services/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 const Aulas = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -44,6 +45,11 @@ const Aulas = () => {
   const [deletingClassroom, setDeletingClassroom] = useState<any>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+
+  const canCreateClassroom = hasRole(['administrador', 'directivo']);
+  const canEditClassroom = hasRole(['administrador', 'directivo']);
+  const canDeleteClassroom = hasRole(['administrador']);
 
   // Consultas
   const { data: classrooms = [], isLoading: loadingClassrooms } = useQuery({
@@ -60,6 +66,7 @@ const Aulas = () => {
         title: "Aula creada",
         description: "El aula se ha creado exitosamente.",
       });
+      setShowForm(false);
     },
     onError: () => {
       toast({
@@ -78,6 +85,8 @@ const Aulas = () => {
         title: "Aula actualizada",
         description: "El aula se ha actualizado exitosamente.",
       });
+      setShowForm(false);
+      setEditingClassroom(null);
     },
     onError: () => {
       toast({
@@ -96,6 +105,7 @@ const Aulas = () => {
         title: "Aula eliminada",
         description: "El aula se ha eliminado exitosamente.",
       });
+      setDeletingClassroom(null);
     },
     onError: () => {
       toast({
@@ -120,19 +130,22 @@ const Aulas = () => {
   const handleEdit = (data: any) => {
     if (editingClassroom) {
       updateMutation.mutate({ id: editingClassroom.id, data });
-      setEditingClassroom(null);
     }
   };
 
   const handleDelete = () => {
     if (deletingClassroom) {
       deleteMutation.mutate(deletingClassroom.id);
-      setDeletingClassroom(null);
     }
   };
 
   const openEditForm = (classroom: any) => {
     setEditingClassroom(classroom);
+    setShowForm(true);
+  };
+
+  const openCreateForm = () => {
+    setEditingClassroom(null);
     setShowForm(true);
   };
 
@@ -154,12 +167,14 @@ const Aulas = () => {
             <div className="flex justify-between items-center">
               <div>
                 <CardTitle>Gestión de Aulas</CardTitle>
-                <CardDescription>Administrar aulas y espacios educativos</CardDescription>
+                <CardDescription>Administrar aulas, capacidad y recursos del establecimiento</CardDescription>
               </div>
-              <Button onClick={() => { setEditingClassroom(null); setShowForm(true); }}>
-                <Plus className="h-4 w-4 mr-2" />
-                Nueva Aula
-              </Button>
+              {canCreateClassroom && (
+                <Button onClick={openCreateForm}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nueva Aula
+                </Button>
+              )}
             </div>
           </CardHeader>
           <CardContent>
@@ -181,10 +196,10 @@ const Aulas = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Aula</TableHead>
-                    <TableHead>Capacidad</TableHead>
                     <TableHead>Ubicación</TableHead>
-                    <TableHead>Recursos</TableHead>
+                    <TableHead>Capacidad</TableHead>
                     <TableHead>Estado</TableHead>
+                    <TableHead>Recursos</TableHead>
                     <TableHead>Acciones</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -205,11 +220,16 @@ const Aulas = () => {
                     filteredClassrooms.map((classroom) => (
                       <TableRow key={classroom.id}>
                         <TableCell className="font-medium">{classroom.nombre}</TableCell>
-                        <TableCell>{classroom.capacidad} estudiantes</TableCell>
-                        <TableCell>{classroom.ubicacion}</TableCell>
-                        <TableCell className="max-w-xs">
-                          <div className="truncate" title={classroom.recursos || ''}>
-                            {classroom.recursos || 'Sin recursos especificados'}
+                        <TableCell>
+                          <div className="flex items-center">
+                            <MapPin className="h-4 w-4 mr-2 text-gray-400" />
+                            {classroom.ubicacion}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 mr-2 text-gray-400" />
+                            {classroom.capacidad} estudiantes
                           </div>
                         </TableCell>
                         <TableCell>
@@ -217,22 +237,38 @@ const Aulas = () => {
                             {classroom.activa ? 'Activa' : 'Inactiva'}
                           </Badge>
                         </TableCell>
+                        <TableCell className="max-w-xs">
+                          <div className="truncate" title={classroom.recursos || ''}>
+                            {classroom.recursos ? (
+                              <div className="flex items-center">
+                                <Wifi className="h-4 w-4 mr-2 text-gray-400" />
+                                {classroom.recursos}
+                              </div>
+                            ) : (
+                              <span className="text-gray-400">Sin recursos</span>
+                            )}
+                          </div>
+                        </TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => openEditForm(classroom)}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setDeletingClassroom(classroom)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
+                            {canEditClassroom && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => openEditForm(classroom)}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                            )}
+                            {canDeleteClassroom && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setDeletingClassroom(classroom)}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
