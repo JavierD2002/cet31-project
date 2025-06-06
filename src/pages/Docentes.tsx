@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ChevronLeft, Search, Eye, User, FileText, Book } from 'lucide-react';
+import { ChevronLeft, Search, Eye, User, FileText, Book, Edit, Trash2 } from 'lucide-react';
 import {
   Table,
   TableBody,
@@ -17,12 +17,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
-import { getTeachers } from '@/services/supabase';
+import TeacherForm from '@/components/teachers/TeacherForm';
+import { getTeachers, createTeacher, updateTeacher, deleteTeacher } from '@/services/supabase';
 import { useAuth } from '@/context/AuthContext';
 
 type Teacher = {
@@ -37,29 +48,95 @@ const Docentes = () => {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
+  const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
   const { toast } = useToast();
   const { hasRole } = useAuth();
   const canCreateTeacher = hasRole(['administrador', 'directivo']);
+  const canEditTeacher = hasRole(['administrador', 'directivo']);
+  const canDeleteTeacher = hasRole(['administrador']);
 
   useEffect(() => {
-    const fetchTeachers = async () => {
-      try {
-        const data = await getTeachers();
-        setTeachers(data as Teacher[]);
-      } catch (error) {
-        console.error("Error al cargar docentes:", error);
-        toast({
-          title: "Error",
-          description: "No se pudieron cargar los docentes",
-          variant: "destructive",
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchTeachers();
-  }, [toast]);
+  }, []);
+
+  const fetchTeachers = async () => {
+    try {
+      setLoading(true);
+      const data = await getTeachers();
+      setTeachers(data as Teacher[]);
+    } catch (error) {
+      console.error("Error al cargar docentes:", error);
+      toast({
+        title: "Error",
+        description: "No se pudieron cargar los docentes",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateTeacher = () => {
+    setEditingTeacher(null);
+    setIsFormOpen(true);
+  };
+
+  const handleEditTeacher = (teacher: Teacher) => {
+    setEditingTeacher(teacher);
+    setIsFormOpen(true);
+  };
+
+  const handleFormSubmit = async (data: any) => {
+    try {
+      if (editingTeacher) {
+        await updateTeacher(editingTeacher.id, data);
+        toast({
+          title: "Éxito",
+          description: "Docente actualizado correctamente",
+        });
+      } else {
+        await createTeacher(data);
+        toast({
+          title: "Éxito",
+          description: "Docente creado correctamente",
+        });
+      }
+      await fetchTeachers();
+    } catch (error) {
+      console.error("Error al guardar docente:", error);
+      toast({
+        title: "Error",
+        description: editingTeacher 
+          ? "No se pudo actualizar el docente" 
+          : "No se pudo crear el docente",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!teacherToDelete) return;
+
+    try {
+      await deleteTeacher(teacherToDelete.id);
+      toast({
+        title: "Éxito",
+        description: "Docente eliminado correctamente",
+      });
+      await fetchTeachers();
+    } catch (error) {
+      console.error("Error al eliminar docente:", error);
+      toast({
+        title: "Error",
+        description: "No se pudo eliminar el docente",
+        variant: "destructive",
+      });
+    } finally {
+      setTeacherToDelete(null);
+    }
+  };
 
   const filteredTeachers = teachers.filter(
     (teacher) =>
@@ -89,7 +166,7 @@ const Docentes = () => {
                 <CardDescription>Administrar información de docentes</CardDescription>
               </div>
               {canCreateTeacher && (
-                <Button variant="outline">
+                <Button onClick={handleCreateTeacher}>
                   <User className="h-4 w-4 mr-2" />
                   Nuevo Docente
                 </Button>
@@ -152,6 +229,27 @@ const Docentes = () => {
                                 Informes
                               </Link>
                             </Button>
+                            {canEditTeacher && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEditTeacher(teacher)}
+                              >
+                                <Edit className="h-4 w-4 mr-1" />
+                                Editar
+                              </Button>
+                            )}
+                            {canDeleteTeacher && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => setTeacherToDelete(teacher)}
+                                className="text-red-600 hover:text-red-700"
+                              >
+                                <Trash2 className="h-4 w-4 mr-1" />
+                                Eliminar
+                              </Button>
+                            )}
                           </div>
                         </TableCell>
                       </TableRow>
@@ -169,6 +267,36 @@ const Docentes = () => {
           </CardContent>
         </Card>
       </main>
+
+      <TeacherForm
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSubmit={handleFormSubmit}
+        initialData={editingTeacher}
+        title={editingTeacher ? "Editar Docente" : "Nuevo Docente"}
+      />
+
+      <AlertDialog open={!!teacherToDelete} onOpenChange={() => setTeacherToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>¿Está seguro?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta acción no se puede deshacer. Esto eliminará permanentemente al docente
+              {teacherToDelete && ` ${teacherToDelete.nombre}`} del sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteConfirm}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Eliminar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
       <Footer />
     </div>
   );
