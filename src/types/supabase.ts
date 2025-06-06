@@ -67,6 +67,38 @@ export interface Database {
           created_at?: string
         }
       }
+      calificaciones: {
+        Row: {
+          id: number
+          estudiante_id: number
+          asignatura_id: number
+          periodo: 'primer_trimestre' | 'segundo_trimestre' | 'tercer_trimestre'
+          nota: number
+          fecha_registro: string
+          observaciones: string | null
+          created_at: string
+        }
+        Insert: {
+          id?: number
+          estudiante_id: number
+          asignatura_id: number
+          periodo: 'primer_trimestre' | 'segundo_trimestre' | 'tercer_trimestre'
+          nota: number
+          fecha_registro: string
+          observaciones?: string | null
+          created_at?: string
+        }
+        Update: {
+          id?: number
+          estudiante_id?: number
+          asignatura_id?: number
+          periodo?: 'primer_trimestre' | 'segundo_trimestre' | 'tercer_trimestre'
+          nota?: number
+          fecha_registro?: string
+          observaciones?: string | null
+          created_at?: string
+        }
+      }
       usuarios: {
         Row: {
           id: number

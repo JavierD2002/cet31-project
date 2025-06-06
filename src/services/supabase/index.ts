@@ -44,3 +44,15 @@ export {
   updateClassroom,
   deleteClassroom
 } from './classrooms';
+
+// Grades
+export {
+  getGradesByCourseAndSubject,
+  saveGrade,
+  getStudentGrades,
+  getStudentReport,
+  type GradePeriod,
+  type Grade,
+  type GradeWithDetails,
+  type StudentGrades
+} from './grades';

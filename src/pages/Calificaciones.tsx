@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
-import { ChevronLeft, GraduationCap, Save, Filter } from 'lucide-react';
+import { ChevronLeft, GraduationCap, Save, Filter, Calculator, FileText } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
   TableBody,
@@ -17,124 +18,182 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Link } from 'react-router-dom';
-
-// Mock data for students with grades
-const mockAlumnos = [
-  { 
-    id: 1, 
-    nombre: "Acosta, María", 
-    curso: "1° Año A",
-    materias: {
-      "Matemática": ["8", "9", ""],
-      "Lengua": ["7", "8", ""],
-      "Historia": ["9", "9", ""],
-      "Geografía": ["8", "7", ""],
-      "Física": ["7", "8", ""],
-    }
-  },
-  { 
-    id: 2, 
-    nombre: "Benítez, Carlos", 
-    curso: "1° Año A",
-    materias: {
-      "Matemática": ["6", "7", ""],
-      "Lengua": ["8", "8", ""],
-      "Historia": ["7", "6", ""],
-      "Geografía": ["9", "8", ""],
-      "Física": ["6", "7", ""],
-    }
-  },
-  { 
-    id: 3, 
-    nombre: "Córdoba, Lucía", 
-    curso: "1° Año A",
-    materias: {
-      "Matemática": ["9", "9", ""],
-      "Lengua": ["10", "9", ""],
-      "Historia": ["8", "9", ""],
-      "Geografía": ["9", "9", ""],
-      "Física": ["8", "8", ""],
-    }
-  },
-  { 
-    id: 4, 
-    nombre: "Díaz, Mateo", 
-    curso: "1° Año A",
-    materias: {
-      "Matemática": ["7", "6", ""],
-      "Lengua": ["6", "7", ""],
-      "Historia": ["8", "7", ""],
-      "Geografía": ["7", "8", ""],
-      "Física": ["6", "6", ""],
-    }
-  },
-  { 
-    id: 5, 
-    nombre: "Espinoza, Valentina", 
-    curso: "1° Año A",
-    materias: {
-      "Matemática": ["8", "8", ""],
-      "Lengua": ["9", "8", ""],
-      "Historia": ["10", "9", ""],
-      "Geografía": ["8", "9", ""],
-      "Física": ["7", "8", ""],
-    }
-  },
-];
+import { useToast } from "@/hooks/use-toast";
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { 
+  getSubjects, 
+  getGradesByCourseAndSubject, 
+  saveGrade,
+  type GradePeriod,
+  type StudentGrades 
+} from '@/services/supabase';
+import { useAuth } from '@/context/AuthContext';
 
 const Calificaciones = () => {
-  const [selectedCourse, setSelectedCourse] = useState("1° Año A");
-  const [selectedSubject, setSelectedSubject] = useState("Matemática");
-  const [grades, setGrades] = useState<{ [key: number]: { [key: string]: string[] } }>(
-    mockAlumnos.reduce((acc, alumno) => {
-      acc[alumno.id] = { ...alumno.materias };
-      return acc;
-    }, {} as { [key: number]: { [key: string]: string[] } })
-  );
-  
-  // Function to handle grade change
-  const handleGradeChange = (studentId: number, subject: string, trimester: number, value: string) => {
-    setGrades(prev => {
-      const newGrades = { ...prev };
-      if (!newGrades[studentId]) {
-        newGrades[studentId] = {};
-      }
-      if (!newGrades[studentId][subject]) {
-        newGrades[studentId][subject] = ["", "", ""];
+  const [selectedCourse, setSelectedCourse] = useState<string>("");
+  const [selectedSubject, setSelectedSubject] = useState<number | null>(null);
+  const [selectedPeriod, setSelectedPeriod] = useState<GradePeriod>('primer_trimestre');
+  const [grades, setGrades] = useState<{ [key: string]: string }>({});
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+
+  const canEditGrades = hasRole(['administrador', 'directivo', 'docente']);
+
+  // Obtener asignaturas
+  const { data: subjects = [], isLoading: loadingSubjects } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: getSubjects,
+  });
+
+  // Obtener calificaciones cuando se selecciona curso y materia
+  const { data: studentGrades = [], isLoading: loadingGrades, refetch } = useQuery({
+    queryKey: ['grades', selectedCourse, selectedSubject],
+    queryFn: () => getGradesByCourseAndSubject(selectedCourse, selectedSubject!),
+    enabled: !!(selectedCourse && selectedSubject),
+  });
+
+  // Mutación para guardar calificaciones
+  const saveGradeMutation = useMutation({
+    mutationFn: ({ estudianteId, nota }: { estudianteId: number; nota: number }) =>
+      saveGrade(estudianteId, selectedSubject!, selectedPeriod, nota),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['grades', selectedCourse, selectedSubject] });
+      toast({
+        title: "Calificación guardada",
+        description: "La calificación se ha guardado correctamente.",
+      });
+    },
+    onError: (error: any) => {
+      console.error('Error saving grade:', error);
+      toast({
+        title: "Error",
+        description: "No se pudo guardar la calificación.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Obtener cursos únicos de las asignaturas
+  const uniqueCourses = [...new Set(subjects.map(s => s.curso))].sort();
+
+  // Filtrar asignaturas por curso seleccionado
+  const courseSubjects = subjects.filter(s => s.curso === selectedCourse);
+
+  // Manejar cambio de calificación
+  const handleGradeChange = (estudianteId: number, value: string) => {
+    const key = `${estudianteId}-${selectedPeriod}`;
+    setGrades(prev => ({
+      ...prev,
+      [key]: value
+    }));
+  };
+
+  // Guardar calificación individual
+  const handleSaveGrade = async (estudianteId: number) => {
+    const key = `${estudianteId}-${selectedPeriod}`;
+    const value = grades[key];
+    
+    if (!value || isNaN(Number(value))) {
+      toast({
+        title: "Error",
+        description: "Ingrese una calificación válida (número).",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const nota = Number(value);
+    if (nota < 1 || nota > 10) {
+      toast({
+        title: "Error",
+        description: "La calificación debe estar entre 1 y 10.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    saveGradeMutation.mutate({ estudianteId, nota });
+  };
+
+  // Guardar todas las calificaciones
+  const handleSaveAllGrades = async () => {
+    if (!selectedSubject) return;
+
+    const gradesToSave = Object.entries(grades)
+      .filter(([key, value]) => key.includes(selectedPeriod) && value && !isNaN(Number(value)))
+      .map(([key, value]) => {
+        const estudianteId = parseInt(key.split('-')[0]);
+        const nota = Number(value);
+        return { estudianteId, nota };
+      })
+      .filter(({ nota }) => nota >= 1 && nota <= 10);
+
+    if (gradesToSave.length === 0) {
+      toast({
+        title: "Sin cambios",
+        description: "No hay calificaciones válidas para guardar.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      for (const { estudianteId, nota } of gradesToSave) {
+        await saveGrade(estudianteId, selectedSubject, selectedPeriod, nota);
       }
       
-      const updatedSubjectGrades = [...newGrades[studentId][subject]];
-      updatedSubjectGrades[trimester] = value;
+      queryClient.invalidateQueries({ queryKey: ['grades', selectedCourse, selectedSubject] });
+      setGrades({});
       
-      newGrades[studentId][subject] = updatedSubjectGrades;
-      return newGrades;
-    });
+      toast({
+        title: "Calificaciones guardadas",
+        description: `Se guardaron ${gradesToSave.length} calificaciones correctamente.`,
+      });
+    } catch (error) {
+      console.error('Error saving grades:', error);
+      toast({
+        title: "Error",
+        description: "Ocurrió un error al guardar las calificaciones.",
+        variant: "destructive",
+      });
+    }
   };
-  
-  // Function to save grades
-  const saveGrades = () => {
-    // In a real application, this would save to MySQL database
-    console.log("Saving grades for", selectedSubject, ":", grades);
-    alert("Calificaciones guardadas correctamente");
+
+  // Obtener la calificación actual del estudiante para el período seleccionado
+  const getCurrentGrade = (student: StudentGrades) => {
+    const key = `${student.estudiante_id}-${selectedPeriod}`;
+    if (grades[key] !== undefined) {
+      return grades[key];
+    }
+
+    switch (selectedPeriod) {
+      case 'primer_trimestre':
+        return student.primer_trimestre?.toString() || '';
+      case 'segundo_trimestre':
+        return student.segundo_trimestre?.toString() || '';
+      case 'tercer_trimestre':
+        return student.tercer_trimestre?.toString() || '';
+      default:
+        return '';
+    }
   };
-  
-  // Get available subjects from the first student
-  const subjects = Object.keys(mockAlumnos[0].materias);
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-blue-600 text-white p-4 shadow-md">
-        <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Sistema de Gestión Escolar</h1>
-          <div className="flex items-center space-x-4">
-            <span className="text-sm">Admin</span>
-          </div>
-        </div>
-      </header>
+      <Header />
       
-      {/* Navigation */}
       <nav className="bg-white shadow-sm p-4">
         <div className="container mx-auto">
           <Link to="/" className="text-blue-600 hover:underline flex items-center">
@@ -144,11 +203,11 @@ const Calificaciones = () => {
         </div>
       </nav>
       
-      {/* Main Content */}
       <main className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Gestión de Calificaciones</h2>
           <Link to="/calificaciones/boletines" className="text-blue-600 hover:underline text-sm">
+            <FileText className="h-4 w-4 inline mr-1" />
             Generar Boletines →
           </Link>
         </div>
@@ -160,119 +219,242 @@ const Calificaciones = () => {
               Registro de Calificaciones
             </CardTitle>
             <CardDescription>
-              Seleccione curso y materia para cargar las calificaciones
+              Seleccione curso, materia y período para cargar las calificaciones
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium mb-1">Curso</label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  value={selectedCourse}
-                  onChange={(e) => setSelectedCourse(e.target.value)}
-                >
-                  <option value="1° Año A">1° Año A</option>
-                  <option value="1° Año B">1° Año B</option>
-                  <option value="2° Año A">2° Año A</option>
-                  <option value="2° Año B">2° Año B</option>
-                  <option value="3° Año A">3° Año A</option>
-                  <option value="3° Año B">3° Año B</option>
-                </select>
+                <Select value={selectedCourse} onValueChange={setSelectedCourse}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar curso" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {uniqueCourses.map(course => (
+                      <SelectItem key={course} value={course}>{course}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
                 <label className="block text-sm font-medium mb-1">Materia</label>
-                <select 
-                  className="w-full p-2 border rounded-md"
-                  value={selectedSubject}
-                  onChange={(e) => setSelectedSubject(e.target.value)}
+                <Select 
+                  value={selectedSubject?.toString() || ""} 
+                  onValueChange={(value) => setSelectedSubject(parseInt(value))}
+                  disabled={!selectedCourse}
                 >
-                  {subjects.map(subject => (
-                    <option key={subject} value={subject}>{subject}</option>
-                  ))}
-                </select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar materia" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {courseSubjects.map(subject => (
+                      <SelectItem key={subject.id} value={subject.id.toString()}>
+                        {subject.nombre}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium mb-1">Período</label>
+                <Select value={selectedPeriod} onValueChange={(value: GradePeriod) => setSelectedPeriod(value)}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="primer_trimestre">1° Trimestre</SelectItem>
+                    <SelectItem value="segundo_trimestre">2° Trimestre</SelectItem>
+                    <SelectItem value="tercer_trimestre">3° Trimestre</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
+
+            {/* Estadísticas rápidas */}
+            {studentGrades.length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="h-4 w-4 text-blue-500" />
+                      <div>
+                        <p className="text-sm text-gray-600">Total Estudiantes</p>
+                        <p className="text-xl font-bold">{studentGrades.length}</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <Calculator className="h-4 w-4 text-green-500" />
+                      <div>
+                        <p className="text-sm text-gray-600">Promedio General</p>
+                        <p className="text-xl font-bold">
+                          {studentGrades.filter(s => s.promedio !== null).length > 0
+                            ? (studentGrades.reduce((acc, s) => acc + (s.promedio || 0), 0) / 
+                               studentGrades.filter(s => s.promedio !== null).length).toFixed(1)
+                            : '-'}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-green-600">Aprobados</Badge>
+                      <div>
+                        <p className="text-xl font-bold">
+                          {studentGrades.filter(s => (s.promedio || 0) >= 6).length}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="text-red-600">Desaprobados</Badge>
+                      <div>
+                        <p className="text-xl font-bold">
+                          {studentGrades.filter(s => s.promedio !== null && s.promedio < 6).length}
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
             
-            <div className="border rounded-md overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12">#</TableHead>
-                    <TableHead>Alumno</TableHead>
-                    <TableHead className="w-32 text-center">1° Trimestre</TableHead>
-                    <TableHead className="w-32 text-center">2° Trimestre</TableHead>
-                    <TableHead className="w-32 text-center">3° Trimestre</TableHead>
-                    <TableHead className="w-32 text-center">Promedio</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {mockAlumnos
-                    .filter(alumno => alumno.curso === selectedCourse)
-                    .map((alumno, index) => {
-                      const currentGrades = grades[alumno.id]?.[selectedSubject] || ["", "", ""];
-                      const nonEmptyGrades = currentGrades.filter(g => g !== "").map(g => Number(g));
-                      const average = nonEmptyGrades.length 
-                        ? (nonEmptyGrades.reduce((a, b) => a + b, 0) / nonEmptyGrades.length).toFixed(1) 
-                        : "-";
-                        
-                      return (
-                        <TableRow key={alumno.id}>
-                          <TableCell>{index + 1}</TableCell>
-                          <TableCell>
-                            <div className="font-medium">{alumno.nombre}</div>
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Input 
-                              className="w-16 text-center mx-auto"
-                              value={currentGrades[0]}
-                              onChange={(e) => handleGradeChange(alumno.id, selectedSubject, 0, e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Input 
-                              className="w-16 text-center mx-auto"
-                              value={currentGrades[1]}
-                              onChange={(e) => handleGradeChange(alumno.id, selectedSubject, 1, e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center">
-                            <Input 
-                              className="w-16 text-center mx-auto"
-                              value={currentGrades[2]}
-                              onChange={(e) => handleGradeChange(alumno.id, selectedSubject, 2, e.target.value)}
-                            />
-                          </TableCell>
-                          <TableCell className="text-center font-medium">
-                            {average}
-                          </TableCell>
+            {selectedCourse && selectedSubject ? (
+              loadingGrades ? (
+                <div className="text-center py-8">Cargando calificaciones...</div>
+              ) : studentGrades.length === 0 ? (
+                <div className="text-center py-8">No hay estudiantes en este curso</div>
+              ) : (
+                <>
+                  <div className="border rounded-md overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">#</TableHead>
+                          <TableHead>Alumno</TableHead>
+                          <TableHead className="w-32 text-center">1° Trimestre</TableHead>
+                          <TableHead className="w-32 text-center">2° Trimestre</TableHead>
+                          <TableHead className="w-32 text-center">3° Trimestre</TableHead>
+                          <TableHead className="w-32 text-center">Promedio</TableHead>
+                          {canEditGrades && (
+                            <TableHead className="w-32 text-center">Calificación Actual</TableHead>
+                          )}
                         </TableRow>
-                      );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-            
-            <div className="mt-6 flex justify-end">
-              <button 
-                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
-                onClick={saveGrades}
-              >
-                <Save className="h-4 w-4 mr-2" />
-                Guardar Calificaciones
-              </button>
-            </div>
+                      </TableHeader>
+                      <TableBody>
+                        {studentGrades.map((student, index) => (
+                          <TableRow key={student.estudiante_id}>
+                            <TableCell>{index + 1}</TableCell>
+                            <TableCell>
+                              <div className="font-medium">{student.estudiante_nombre}</div>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge 
+                                variant={student.primer_trimestre ? 
+                                  (student.primer_trimestre >= 6 ? "default" : "destructive") : 
+                                  "secondary"
+                                }
+                              >
+                                {student.primer_trimestre || "-"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge 
+                                variant={student.segundo_trimestre ? 
+                                  (student.segundo_trimestre >= 6 ? "default" : "destructive") : 
+                                  "secondary"
+                                }
+                              >
+                                {student.segundo_trimestre || "-"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge 
+                                variant={student.tercer_trimestre ? 
+                                  (student.tercer_trimestre >= 6 ? "default" : "destructive") : 
+                                  "secondary"
+                                }
+                              >
+                                {student.tercer_trimestre || "-"}
+                              </Badge>
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <Badge 
+                                variant={student.promedio ? 
+                                  (student.promedio >= 6 ? "default" : "destructive") : 
+                                  "secondary"
+                                }
+                                className="font-bold"
+                              >
+                                {student.promedio?.toFixed(1) || "-"}
+                              </Badge>
+                            </TableCell>
+                            {canEditGrades && (
+                              <TableCell className="text-center">
+                                <div className="flex items-center gap-2">
+                                  <Input 
+                                    className="w-16 text-center"
+                                    placeholder="1-10"
+                                    value={getCurrentGrade(student)}
+                                    onChange={(e) => handleGradeChange(student.estudiante_id, e.target.value)}
+                                  />
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    onClick={() => handleSaveGrade(student.estudiante_id)}
+                                    disabled={saveGradeMutation.isPending}
+                                  >
+                                    <Save className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                  
+                  {canEditGrades && (
+                    <div className="mt-6 flex justify-end gap-2">
+                      <Button 
+                        variant="outline"
+                        onClick={() => setGrades({})}
+                      >
+                        Limpiar Cambios
+                      </Button>
+                      <Button 
+                        onClick={handleSaveAllGrades}
+                        disabled={saveGradeMutation.isPending}
+                      >
+                        <Save className="h-4 w-4 mr-2" />
+                        Guardar Todas las Calificaciones
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                Seleccione un curso y una materia para ver las calificaciones
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
       
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-4 mt-8">
-        <div className="container mx-auto text-center text-sm">
-          <p>&copy; 2025 Sistema de Gestión Escolar - Escuela Técnica de Río Negro</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };
