@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { BarChart3Icon, FileTextIcon, DownloadIcon } from 'lucide-react';
+import { CalendarIcon, FilterIcon, DownloadIcon, FileTextIcon } from 'lucide-react';
 import {
   Card,
   CardContent,
@@ -18,24 +18,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getAttendanceReport, getSubjects } from '@/services/supabase';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getAttendanceReport, getTeachers, getSubjects } from '@/services/supabase';
 
 const AttendanceReports = () => {
   const [filtros, setFiltros] = useState({
     curso: '',
     asignatura_id: '',
-    fecha_desde: new Date().toISOString().split('T')[0],
-    fecha_hasta: new Date().toISOString().split('T')[0]
+    fecha_desde: '',
+    fecha_hasta: ''
   });
 
-  const { data: reporte, isLoading } = useQuery({
+  const { data: reporteData, isLoading } = useQuery({
     queryKey: ['attendanceReport', filtros],
     queryFn: () => getAttendanceReport({
       curso: filtros.curso || undefined,
       asignatura_id: filtros.asignatura_id ? parseInt(filtros.asignatura_id) : undefined,
       fecha_desde: filtros.fecha_desde,
       fecha_hasta: filtros.fecha_hasta
-    })
+    }),
+    enabled: !!(filtros.fecha_desde && filtros.fecha_hasta)
+  });
+
+  const { data: docentes } = useQuery({
+    queryKey: ['teachers'],
+    queryFn: getTeachers
   });
 
   const { data: asignaturas } = useQuery({
@@ -51,13 +65,34 @@ const AttendanceReports = () => {
     "5° Año A", "5° Año B"
   ];
 
+  // Procesar datos para estadísticas
+  const estadisticas = React.useMemo(() => {
+    if (!reporteData || !Array.isArray(reporteData)) {
+      return {
+        total_estudiantes: 0,
+        promedio_asistencia: 0,
+        dias_analizados: 0
+      };
+    }
+
+    const estudiantesUnicos = new Set(reporteData.map(r => r.estudiante_id));
+    const fechasUnicas = new Set(reporteData.map(r => r.asistencias?.fecha));
+    const presentes = reporteData.filter(r => r.estado === 'presente').length;
+    
+    return {
+      total_estudiantes: estudiantesUnicos.size,
+      promedio_asistencia: reporteData.length > 0 ? (presentes / reporteData.length) * 100 : 0,
+      dias_analizados: fechasUnicas.size
+    };
+  }, [reporteData]);
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <header className="bg-green-600 text-white p-4 shadow-md">
+      <header className="bg-blue-600 text-white p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold flex items-center">
-            <BarChart3Icon className="mr-2" />
-            Informes de Asistencia
+            <FileTextIcon className="mr-2" />
+            Reportes de Asistencia
           </h1>
         </div>
       </header>
@@ -66,11 +101,11 @@ const AttendanceReports = () => {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <FileTextIcon className="mr-2 h-5 w-5" />
-              Generar Informe
+              <FilterIcon className="mr-2 h-5 w-5" />
+              Configurar Reporte
             </CardTitle>
             <CardDescription>
-              Configura los parámetros para generar un informe de asistencia
+              Selecciona los criterios para generar el reporte de asistencia
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -108,30 +143,34 @@ const AttendanceReports = () => {
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Fecha Desde</label>
+                <label className="text-sm font-medium mb-2 block">Fecha Desde *</label>
                 <Input 
                   type="date" 
                   value={filtros.fecha_desde}
                   onChange={(e) => setFiltros(prev => ({ ...prev, fecha_desde: e.target.value }))}
+                  required
                 />
               </div>
 
               <div>
-                <label className="text-sm font-medium mb-2 block">Fecha Hasta</label>
+                <label className="text-sm font-medium mb-2 block">Fecha Hasta *</label>
                 <Input 
                   type="date" 
                   value={filtros.fecha_hasta}
                   onChange={(e) => setFiltros(prev => ({ ...prev, fecha_hasta: e.target.value }))}
+                  required
                 />
               </div>
             </div>
 
             <div className="mt-4 flex gap-2">
-              <Button>
-                <FileTextIcon className="mr-2 h-4 w-4" />
-                Generar Informe
+              <Button 
+                onClick={() => setFiltros({ curso: '', asignatura_id: '', fecha_desde: '', fecha_hasta: '' })}
+                variant="outline"
+              >
+                Limpiar
               </Button>
-              <Button variant="outline">
+              <Button disabled={!filtros.fecha_desde || !filtros.fecha_hasta}>
                 <DownloadIcon className="mr-2 h-4 w-4" />
                 Exportar PDF
               </Button>
@@ -139,32 +178,25 @@ const AttendanceReports = () => {
           </CardContent>
         </Card>
 
-        {reporte && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        {/* Estadísticas */}
+        {filtros.fecha_desde && filtros.fecha_hasta && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Total de Estudiantes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-blue-600">{reporte.total_estudiantes}</p>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-blue-600">{estadisticas.total_estudiantes}</div>
+                <div className="text-sm text-gray-600">Total Estudiantes</div>
               </CardContent>
             </Card>
-
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Promedio de Asistencia</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-green-600">{reporte.promedio_asistencia}%</p>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-green-600">{estadisticas.promedio_asistencia.toFixed(1)}%</div>
+                <div className="text-sm text-gray-600">Promedio Asistencia</div>
               </CardContent>
             </Card>
-
             <Card>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-lg">Días Analizados</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-3xl font-bold text-purple-600">{reporte.dias_analizados}</p>
+              <CardContent className="p-4">
+                <div className="text-2xl font-bold text-purple-600">{estadisticas.dias_analizados}</div>
+                <div className="text-sm text-gray-600">Días Analizados</div>
               </CardContent>
             </Card>
           </div>
@@ -172,32 +204,75 @@ const AttendanceReports = () => {
 
         <Card>
           <CardHeader>
-            <CardTitle>Vista Previa del Informe</CardTitle>
+            <CardTitle>Datos del Reporte</CardTitle>
             <CardDescription>
-              Datos del período seleccionado
+              {filtros.fecha_desde && filtros.fecha_hasta 
+                ? `Reporte generado para el período del ${filtros.fecha_desde} al ${filtros.fecha_hasta}. Total: ${estadisticas.total_estudiantes} estudiantes, Promedio: ${estadisticas.promedio_asistencia.toFixed(1)}%, Días: ${estadisticas.dias_analizados}`
+                : "Selecciona un rango de fechas para generar el reporte"
+              }
             </CardDescription>
           </CardHeader>
           <CardContent>
             {isLoading ? (
-              <p>Generando informe...</p>
-            ) : reporte ? (
-              <div className="space-y-4">
-                <div className="p-4 border rounded-lg">
-                  <h3 className="font-semibold mb-2">Resumen Ejecutivo</h3>
-                  <p className="text-sm text-gray-600">
-                    Período: {new Date(filtros.fecha_desde).toLocaleDateString()} - {new Date(filtros.fecha_hasta).toLocaleDateString()}
-                  </p>
-                  {filtros.curso && <p className="text-sm text-gray-600">Curso: {filtros.curso}</p>}
-                  <p className="text-sm text-gray-600 mt-2">
-                    Durante este período se registraron {reporte.total_estudiantes} estudiantes con un promedio de asistencia del {reporte.promedio_asistencia}% 
-                    a lo largo de {reporte.dias_analizados} días de clase.
-                  </p>
-                </div>
+              <p>Generando reporte...</p>
+            ) : filtros.fecha_desde && filtros.fecha_hasta ? (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Estudiante</TableHead>
+                      <TableHead>Curso</TableHead>
+                      <TableHead>Asignatura</TableHead>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Estado</TableHead>
+                      <TableHead>Observación</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {reporteData && reporteData.length > 0 ? (
+                      reporteData.map((registro, index) => (
+                        <TableRow key={index}>
+                          <TableCell>
+                            {registro.usuarios ? 
+                              `${registro.usuarios.apellido}, ${registro.usuarios.nombre}` : 
+                              'Sin datos'
+                            }
+                          </TableCell>
+                          <TableCell>{registro.asistencias?.curso || 'N/A'}</TableCell>
+                          <TableCell>{registro.asistencias?.asignaturas?.nombre || 'N/A'}</TableCell>
+                          <TableCell>
+                            {registro.asistencias?.fecha ? 
+                              new Date(registro.asistencias.fecha).toLocaleDateString() : 
+                              'N/A'
+                            }
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              registro.estado === 'presente' ? 'bg-green-100 text-green-800' :
+                              registro.estado === 'ausente' ? 'bg-red-100 text-red-800' :
+                              registro.estado === 'tardanza' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {registro.estado}
+                            </span>
+                          </TableCell>
+                          <TableCell>{registro.observacion || '-'}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={6} className="text-center py-4 text-gray-500">
+                          No se encontraron datos para el período seleccionado
+                        </TableCell>
+                      </TableRow>
+                    )}
+                  </TableBody>
+                </Table>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-8">
-                Configura los filtros y haz clic en "Generar Informe" para ver los resultados
-              </p>
+              <div className="text-center py-8 text-gray-500">
+                Selecciona las fechas de inicio y fin para generar el reporte
+              </div>
             )}
           </CardContent>
         </Card>

@@ -1,4 +1,3 @@
-
 // Re-export all functions from their respective files
 export { supabase, isSupabaseConfigured } from './client';
 export { getMockUsers } from './mockUsers';
@@ -67,3 +66,13 @@ export {
   updateTopic,
   deleteTopic
 } from './topics';
+
+// Reports (Sistema de Informes)
+export {
+  getReports,
+  getReportTemplates,
+  createReport,
+  updateReport,
+  deleteReport,
+  getReportById
+} from './reports';
