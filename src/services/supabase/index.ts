@@ -26,7 +26,10 @@ export {
 export { 
   saveAttendance, 
   getAttendanceHistory, 
-  getAttendanceDetails 
+  getAttendanceDetails,
+  getStudentAttendanceStats,
+  getAttendanceReport,
+  getAbsentStudentsNotifications
 } from './attendance';
 
 // Subjects
