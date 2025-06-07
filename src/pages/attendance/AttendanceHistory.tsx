@@ -1,20 +1,35 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronLeft, Filter, FileText, Calendar } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useQuery } from '@tanstack/react-query';
+import { CalendarIcon, FilterIcon, SearchIcon, DownloadIcon } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import { useQuery } from '@tanstack/react-query';
-import { getAttendanceHistory, getSubjects, getTeachers } from '@/services/supabase';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { getAttendanceHistory, getTeachers, getSubjects } from '@/services/supabase';
 
 const AttendanceHistory = () => {
-  const [filters, setFilters] = useState({
+  const [filtros, setFiltros] = useState({
     curso: '',
     profesor_id: '',
     asignatura_id: '',
@@ -22,105 +37,64 @@ const AttendanceHistory = () => {
     fecha_hasta: ''
   });
 
-  const { data: attendanceHistory, isLoading, error } = useQuery({
-    queryKey: ['attendanceHistory', filters],
-    queryFn: () => getAttendanceHistory(filters),
+  const { data: historial, isLoading } = useQuery({
+    queryKey: ['attendanceHistory', filtros],
+    queryFn: () => getAttendanceHistory({
+      curso: filtros.curso || undefined,
+      profesor_id: filtros.profesor_id ? parseInt(filtros.profesor_id) : undefined,
+      asignatura_id: filtros.asignatura_id ? parseInt(filtros.asignatura_id) : undefined,
+      fecha_desde: filtros.fecha_desde || undefined,
+      fecha_hasta: filtros.fecha_hasta || undefined
+    })
   });
 
-  const { data: subjects } = useQuery({
-    queryKey: ['subjects'],
-    queryFn: getSubjects,
-  });
-
-  const { data: teachers } = useQuery({
+  const { data: docentes } = useQuery({
     queryKey: ['teachers'],
-    queryFn: getTeachers,
+    queryFn: getTeachers
   });
 
-  const calculateStats = (details: any[]) => {
-    return details.reduce(
-      (acc, curr) => {
-        acc[curr.estado]++;
-        return acc;
-      },
-      { presente: 0, ausente: 0, tardanza: 0, retirado: 0 }
-    );
-  };
+  const { data: asignaturas } = useQuery({
+    queryKey: ['subjects'],
+    queryFn: getSubjects
+  });
 
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const clearFilters = () => {
-    setFilters({
-      curso: '',
-      profesor_id: '',
-      asignatura_id: '',
-      fecha_desde: '',
-      fecha_hasta: ''
-    });
-  };
-
-  const cursos = ['1° Año A', '1° Año B', '2° Año A', '2° Año B', '3° Año A', '3° Año B'];
-
-  if (isLoading) return <div>Cargando...</div>;
-  if (error) return <div>Error al cargar el historial</div>;
+  const cursos = [
+    "1° Año A", "1° Año B", "1° Año C",
+    "2° Año A", "2° Año B", "2° Año C", 
+    "3° Año A", "3° Año B", "3° Año C",
+    "4° Año A", "4° Año B",
+    "5° Año A", "5° Año B"
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <nav className="bg-white shadow-sm p-4">
-        <div className="container mx-auto">
-          <Link to="/asistencia" className="text-blue-600 hover:underline flex items-center">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Volver a Asistencia
-          </Link>
+      <header className="bg-blue-600 text-white p-4 shadow-md">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold flex items-center">
+            <CalendarIcon className="mr-2" />
+            Historial de Asistencia
+          </h1>
         </div>
-      </nav>
-      
-      <main className="container mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Historial de Asistencia</h2>
-          <div className="flex gap-2">
-            <Link 
-              to="/asistencia/informes" 
-              className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 flex items-center"
-            >
-              <FileText className="h-4 w-4 mr-2" />
-              Ver Informes
-            </Link>
-            <Link 
-              to="/asistencia" 
-              className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 flex items-center"
-            >
-              <Calendar className="h-4 w-4 mr-2" />
-              Registrar Nueva
-            </Link>
-          </div>
-        </div>
+      </header>
 
-        {/* Filtros */}
+      <main className="container mx-auto py-8 px-4">
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Filter className="h-5 w-5 mr-2" />
-              Filtros
+              <FilterIcon className="mr-2 h-5 w-5" />
+              Filtros de Búsqueda
             </CardTitle>
             <CardDescription>
-              Filtre los registros de asistencia por diferentes criterios
+              Utiliza los filtros para encontrar registros específicos
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Curso</label>
-                <Select value={filters.curso} onValueChange={(value) => handleFilterChange('curso', value)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Curso</label>
+                <Select value={filtros.curso} onValueChange={(value) => setFiltros(prev => ({ ...prev, curso: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
+                    <SelectValue placeholder="Todos los cursos" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todos los cursos</SelectItem>
@@ -131,64 +105,67 @@ const AttendanceHistory = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Profesor</label>
-                <Select value={filters.profesor_id} onValueChange={(value) => handleFilterChange('profesor_id', value)}>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Docente</label>
+                <Select value={filtros.profesor_id} onValueChange={(value) => setFiltros(prev => ({ ...prev, profesor_id: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos" />
+                    <SelectValue placeholder="Todos los docentes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los profesores</SelectItem>
-                    {teachers?.map(teacher => (
-                      <SelectItem key={teacher.id} value={teacher.id.toString()}>
-                        {teacher.nombre} {teacher.apellido}
+                    <SelectItem value="">Todos los docentes</SelectItem>
+                    {docentes?.map(docente => (
+                      <SelectItem key={docente.id} value={docente.id.toString()}>
+                        {docente.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Asignatura</label>
-                <Select value={filters.asignatura_id} onValueChange={(value) => handleFilterChange('asignatura_id', value)}>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Asignatura</label>
+                <Select value={filtros.asignatura_id} onValueChange={(value) => setFiltros(prev => ({ ...prev, asignatura_id: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todas" />
+                    <SelectValue placeholder="Todas las asignaturas" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todas las asignaturas</SelectItem>
-                    {subjects?.map(subject => (
-                      <SelectItem key={subject.id} value={subject.id.toString()}>
-                        {subject.nombre}
+                    {asignaturas?.map(asignatura => (
+                      <SelectItem key={asignatura.id} value={asignatura.id.toString()}>
+                        {asignatura.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Desde</label>
-                <Input
-                  type="date"
-                  value={filters.fecha_desde}
-                  onChange={(e) => handleFilterChange('fecha_desde', e.target.value)}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Fecha Desde</label>
+                <Input 
+                  type="date" 
+                  value={filtros.fecha_desde}
+                  onChange={(e) => setFiltros(prev => ({ ...prev, fecha_desde: e.target.value }))}
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Hasta</label>
-                <Input
-                  type="date"
-                  value={filters.fecha_hasta}
-                  onChange={(e) => handleFilterChange('fecha_hasta', e.target.value)}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Fecha Hasta</label>
+                <Input 
+                  type="date" 
+                  value={filtros.fecha_hasta}
+                  onChange={(e) => setFiltros(prev => ({ ...prev, fecha_hasta: e.target.value }))}
                 />
               </div>
+            </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium opacity-0">Acciones</label>
-                <Button onClick={clearFilters} variant="outline" className="w-full">
-                  Limpiar Filtros
-                </Button>
-              </div>
+            <div className="mt-4 flex gap-2">
+              <Button onClick={() => setFiltros({ curso: '', profesor_id: '', asignatura_id: '', fecha_desde: '', fecha_hasta: '' })}>
+                Limpiar Filtros
+              </Button>
+              <Button variant="outline">
+                <DownloadIcon className="mr-2 h-4 w-4" />
+                Exportar
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -197,67 +174,55 @@ const AttendanceHistory = () => {
           <CardHeader>
             <CardTitle>Registros de Asistencia</CardTitle>
             <CardDescription>
-              {attendanceHistory?.length || 0} registros encontrados
+              Historial completo de asistencias registradas
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[100px]">Fecha</TableHead>
-                    <TableHead>Profesor</TableHead>
-                    <TableHead>Asignatura</TableHead>
-                    <TableHead>Curso</TableHead>
-                    <TableHead className="text-center">Presentes</TableHead>
-                    <TableHead className="text-center">Ausentes</TableHead>
-                    <TableHead className="text-center">Tardanzas</TableHead>
-                    <TableHead className="text-center">Retirados</TableHead>
-                    <TableHead className="text-right">Acciones</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {attendanceHistory?.map((registro) => {
-                    const stats = calculateStats(registro.asistencias_detalle);
-                    return (
-                      <TableRow key={registro.id}>
-                        <TableCell className="font-medium">{registro.fecha}</TableCell>
-                        <TableCell>
-                          {registro.usuarios?.nombre} {registro.usuarios?.apellido}
-                        </TableCell>
-                        <TableCell>{registro.asignaturas?.nombre}</TableCell>
-                        <TableCell>{registro.curso}</TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="default" className="bg-green-500">{stats.presente}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="default" className="bg-red-500">{stats.ausente}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="default" className="bg-yellow-500">{stats.tardanza}</Badge>
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Badge variant="default" className="bg-blue-500">{stats.retirado}</Badge>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Link 
-                            to={`/asistencia/detalle/${registro.id}`}
-                            className="text-blue-600 hover:underline"
-                          >
-                            Ver detalle
-                          </Link>
+            {isLoading ? (
+              <p>Cargando historial...</p>
+            ) : (
+              <div className="rounded-md border">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Fecha</TableHead>
+                      <TableHead>Curso</TableHead>
+                      <TableHead>Asignatura</TableHead>
+                      <TableHead>Docente</TableHead>
+                      <TableHead>Presentes</TableHead>
+                      <TableHead>Ausentes</TableHead>
+                      <TableHead>Tardanzas</TableHead>
+                      <TableHead>Total</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {historial && historial.length > 0 ? (
+                      historial.map((registro, index) => (
+                        <TableRow key={index}>
+                          <TableCell>{new Date(registro.fecha).toLocaleDateString()}</TableCell>
+                          <TableCell>{registro.curso}</TableCell>
+                          <TableCell>{registro.asignatura}</TableCell>
+                          <TableCell>{registro.docente}</TableCell>
+                          <TableCell className="text-green-600 font-medium">{registro.presentes}</TableCell>
+                          <TableCell className="text-red-600 font-medium">{registro.ausentes}</TableCell>
+                          <TableCell className="text-yellow-600 font-medium">{registro.tardanzas}</TableCell>
+                          <TableCell>{registro.total}</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={8} className="text-center py-4 text-gray-500">
+                          No se encontraron registros con los filtros aplicados
                         </TableCell>
                       </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </CardContent>
         </Card>
       </main>
-      
-      <Footer />
     </div>
   );
 };

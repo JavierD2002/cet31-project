@@ -1,126 +1,85 @@
 
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
-import { ChevronLeft, Download, Filter, Calendar, Users } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart3Icon, FileTextIcon, DownloadIcon } from 'lucide-react';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Badge } from "@/components/ui/badge";
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
-import AttendanceStatusBadge from '@/components/attendance/AttendanceStatusBadge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { getAttendanceReport, getSubjects } from '@/services/supabase';
 
 const AttendanceReports = () => {
-  const [filters, setFilters] = useState({
+  const [filtros, setFiltros] = useState({
     curso: '',
     asignatura_id: '',
-    fecha_desde: '',
-    fecha_hasta: ''
+    fecha_desde: new Date().toISOString().split('T')[0],
+    fecha_hasta: new Date().toISOString().split('T')[0]
   });
 
-  const { data: subjects } = useQuery({
+  const { data: reporte, isLoading } = useQuery({
+    queryKey: ['attendanceReport', filtros],
+    queryFn: () => getAttendanceReport({
+      curso: filtros.curso || undefined,
+      asignatura_id: filtros.asignatura_id ? parseInt(filtros.asignatura_id) : undefined,
+      fecha_desde: filtros.fecha_desde,
+      fecha_hasta: filtros.fecha_hasta
+    })
+  });
+
+  const { data: asignaturas } = useQuery({
     queryKey: ['subjects'],
-    queryFn: getSubjects,
+    queryFn: getSubjects
   });
 
-  const { data: reportData, isLoading, refetch } = useQuery({
-    queryKey: ['attendanceReport', filters],
-    queryFn: () => getAttendanceReport(filters),
-    enabled: !!(filters.fecha_desde && filters.fecha_hasta)
-  });
-
-  const handleFilterChange = (key: string, value: string) => {
-    setFilters(prev => ({
-      ...prev,
-      [key]: value
-    }));
-  };
-
-  const generateReport = () => {
-    if (filters.fecha_desde && filters.fecha_hasta) {
-      refetch();
-    }
-  };
-
-  const exportToPDF = () => {
-    // Implementación futura para exportar a PDF
-    console.log('Exportar a PDF:', reportData);
-  };
-
-  const cursos = ['1° Año A', '1° Año B', '2° Año A', '2° Año B', '3° Año A', '3° Año B'];
-
-  const calculateStats = () => {
-    if (!reportData) return { presente: 0, ausente: 0, tardanza: 0, retirado: 0 };
-    
-    return reportData.reduce(
-      (acc, record) => {
-        acc[record.estado]++;
-        return acc;
-      },
-      { presente: 0, ausente: 0, tardanza: 0, retirado: 0 }
-    );
-  };
-
-  const stats = calculateStats();
+  const cursos = [
+    "1° Año A", "1° Año B", "1° Año C",
+    "2° Año A", "2° Año B", "2° Año C", 
+    "3° Año A", "3° Año B", "3° Año C",
+    "4° Año A", "4° Año B",
+    "5° Año A", "5° Año B"
+  ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Header />
-      
-      <nav className="bg-white shadow-sm p-4">
-        <div className="container mx-auto">
-          <Link to="/asistencia" className="text-blue-600 hover:underline flex items-center">
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            Volver a Asistencia
-          </Link>
+      <header className="bg-green-600 text-white p-4 shadow-md">
+        <div className="container mx-auto flex justify-between items-center">
+          <h1 className="text-2xl font-bold flex items-center">
+            <BarChart3Icon className="mr-2" />
+            Informes de Asistencia
+          </h1>
         </div>
-      </nav>
+      </header>
 
       <main className="container mx-auto py-8 px-4">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-2xl font-semibold">Informes de Asistencia</h2>
-        </div>
-
-        {/* Filtros */}
         <Card className="mb-6">
           <CardHeader>
             <CardTitle className="flex items-center">
-              <Filter className="h-5 w-5 mr-2" />
-              Filtros de Búsqueda
+              <FileTextIcon className="mr-2 h-5 w-5" />
+              Generar Informe
             </CardTitle>
             <CardDescription>
-              Seleccione los criterios para generar el informe
+              Configura los parámetros para generar un informe de asistencia
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Fecha Desde</label>
-                <Input
-                  type="date"
-                  value={filters.fecha_desde}
-                  onChange={(e) => handleFilterChange('fecha_desde', e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Fecha Hasta</label>
-                <Input
-                  type="date"
-                  value={filters.fecha_hasta}
-                  onChange={(e) => handleFilterChange('fecha_hasta', e.target.value)}
-                />
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Curso</label>
-                <Select onValueChange={(value) => handleFilterChange('curso', value)}>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Curso</label>
+                <Select value={filtros.curso} onValueChange={(value) => setFiltros(prev => ({ ...prev, curso: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todos los cursos" />
+                    <SelectValue placeholder="Seleccionar curso" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todos los cursos</SelectItem>
@@ -131,149 +90,118 @@ const AttendanceReports = () => {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Asignatura</label>
-                <Select onValueChange={(value) => handleFilterChange('asignatura_id', value)}>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Asignatura</label>
+                <Select value={filtros.asignatura_id} onValueChange={(value) => setFiltros(prev => ({ ...prev, asignatura_id: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Todas las asignaturas" />
+                    <SelectValue placeholder="Seleccionar asignatura" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">Todas las asignaturas</SelectItem>
-                    {subjects?.map(subject => (
-                      <SelectItem key={subject.id} value={subject.id.toString()}>
-                        {subject.nombre}
+                    {asignaturas?.map(asignatura => (
+                      <SelectItem key={asignatura.id} value={asignatura.id.toString()}>
+                        {asignatura.nombre}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium opacity-0">Acciones</label>
-                <Button onClick={generateReport} className="w-full">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  Generar Informe
-                </Button>
+              <div>
+                <label className="text-sm font-medium mb-2 block">Fecha Desde</label>
+                <Input 
+                  type="date" 
+                  value={filtros.fecha_desde}
+                  onChange={(e) => setFiltros(prev => ({ ...prev, fecha_desde: e.target.value }))}
+                />
               </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Fecha Hasta</label>
+                <Input 
+                  type="date" 
+                  value={filtros.fecha_hasta}
+                  onChange={(e) => setFiltros(prev => ({ ...prev, fecha_hasta: e.target.value }))}
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 flex gap-2">
+              <Button>
+                <FileTextIcon className="mr-2 h-4 w-4" />
+                Generar Informe
+              </Button>
+              <Button variant="outline">
+                <DownloadIcon className="mr-2 h-4 w-4" />
+                Exportar PDF
+              </Button>
             </div>
           </CardContent>
         </Card>
 
-        {/* Estadísticas */}
-        {reportData && (
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {reporte && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Users className="h-8 w-8 text-green-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Presentes</p>
-                    <p className="text-2xl font-bold text-green-600">{stats.presente}</p>
-                  </div>
-                </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Total de Estudiantes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-blue-600">{reporte.total_estudiantes}</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Users className="h-8 w-8 text-red-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Ausentes</p>
-                    <p className="text-2xl font-bold text-red-600">{stats.ausente}</p>
-                  </div>
-                </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Promedio de Asistencia</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-green-600">{reporte.promedio_asistencia}%</p>
               </CardContent>
             </Card>
 
             <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Users className="h-8 w-8 text-yellow-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Tardanzas</p>
-                    <p className="text-2xl font-bold text-yellow-600">{stats.tardanza}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardContent className="p-6">
-                <div className="flex items-center">
-                  <Users className="h-8 w-8 text-blue-600" />
-                  <div className="ml-4">
-                    <p className="text-sm font-medium text-gray-500">Retirados</p>
-                    <p className="text-2xl font-bold text-blue-600">{stats.retirado}</p>
-                  </div>
-                </div>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-lg">Días Analizados</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold text-purple-600">{reporte.dias_analizados}</p>
               </CardContent>
             </Card>
           </div>
         )}
 
-        {/* Resultados */}
-        {reportData && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex justify-between items-center">
-                Resultados del Informe
-                <Button onClick={exportToPDF} variant="outline">
-                  <Download className="h-4 w-4 mr-2" />
-                  Exportar PDF
-                </Button>
-              </CardTitle>
-              <CardDescription>
-                {reportData.length} registros encontrados
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Fecha</TableHead>
-                      <TableHead>Estudiante</TableHead>
-                      <TableHead>Curso</TableHead>
-                      <TableHead>Asignatura</TableHead>
-                      <TableHead>Estado</TableHead>
-                      <TableHead>Hora</TableHead>
-                      <TableHead>Observaciones</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {reportData.map((record: any) => (
-                      <TableRow key={record.id}>
-                        <TableCell>{record.asistencias.fecha}</TableCell>
-                        <TableCell>
-                          {record.usuarios?.nombre} {record.usuarios?.apellido}
-                        </TableCell>
-                        <TableCell>{record.asistencias.curso}</TableCell>
-                        <TableCell>{record.asistencias.asignaturas?.nombre}</TableCell>
-                        <TableCell>
-                          <AttendanceStatusBadge status={record.estado} />
-                        </TableCell>
-                        <TableCell>
-                          {new Date(record.hora_registro).toLocaleTimeString()}
-                        </TableCell>
-                        <TableCell>{record.observacion || '-'}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+        <Card>
+          <CardHeader>
+            <CardTitle>Vista Previa del Informe</CardTitle>
+            <CardDescription>
+              Datos del período seleccionado
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p>Generando informe...</p>
+            ) : reporte ? (
+              <div className="space-y-4">
+                <div className="p-4 border rounded-lg">
+                  <h3 className="font-semibold mb-2">Resumen Ejecutivo</h3>
+                  <p className="text-sm text-gray-600">
+                    Período: {new Date(filtros.fecha_desde).toLocaleDateString()} - {new Date(filtros.fecha_hasta).toLocaleDateString()}
+                  </p>
+                  {filtros.curso && <p className="text-sm text-gray-600">Curso: {filtros.curso}</p>}
+                  <p className="text-sm text-gray-600 mt-2">
+                    Durante este período se registraron {reporte.total_estudiantes} estudiantes con un promedio de asistencia del {reporte.promedio_asistencia}% 
+                    a lo largo de {reporte.dias_analizados} días de clase.
+                  </p>
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {isLoading && (
-          <div className="text-center py-8">
-            <p>Generando informe...</p>
-          </div>
-        )}
+            ) : (
+              <p className="text-gray-500 text-center py-8">
+                Configura los filtros y haz clic en "Generar Informe" para ver los resultados
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </main>
-      
-      <Footer />
     </div>
   );
 };

@@ -59,3 +59,11 @@ export {
   type GradeWithDetails,
   type StudentGrades
 } from './grades';
+
+// Topics (Libro de Tema)
+export {
+  getTopics,
+  createTopic,
+  updateTopic,
+  deleteTopic
+} from './topics';
