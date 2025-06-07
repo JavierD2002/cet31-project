@@ -108,7 +108,7 @@ const EstudiantePerfil = () => {
         
         <StudentTabs
           gradesContent={<StudentGradesTab calificaciones={profile.calificaciones} />}
-          attendanceContent={<StudentAttendanceTab asistencia={profile.asistencia} />}
+          attendanceContent={<StudentAttendanceTab studentId={profile.id} />}
         />
       </main>
       

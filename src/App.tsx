@@ -24,6 +24,8 @@ import EstudiantePerfil from "./pages/estudiantes/EstudiantePerfil";
 import DocentePerfil from "./pages/docentes/DocentePerfil";
 import EstudianteDashboard from "./pages/estudiante/Dashboard";
 import DocenteDashboard from "./pages/docente/Dashboard";
+import DirectivoDashboard from "./pages/directivo/Dashboard";
+import AdminDashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/users/UserManagement";
 import UserForm from "./pages/admin/UserForm";
 
@@ -57,6 +59,26 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['docente']}>
                   <DocenteDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Rutas de directivo */}
+            <Route 
+              path="/directivo/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['directivo']}>
+                  <DirectivoDashboard />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Rutas de administrador */}
+            <Route 
+              path="/admin/dashboard" 
+              element={
+                <ProtectedRoute allowedRoles={['administrador']}>
+                  <AdminDashboard />
                 </ProtectedRoute>
               } 
             />

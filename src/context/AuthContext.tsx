@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase, getMockUsers } from '@/services/supabase';
@@ -76,7 +77,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           description: "Bienvenido, Administrador del Sistema",
         });
         
-        navigate('/');
+        navigate('/admin/dashboard');
         return;
       }
       
@@ -111,11 +112,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         description: `Bienvenido, ${userData.nombre} ${userData.apellido}`,
       });
       
-      // Redirigir según el rol
+      // Redirigir según el rol al dashboard específico
       if (userData.rol === 'estudiante') {
         navigate('/estudiante/dashboard');
       } else if (userData.rol === 'docente') {
         navigate('/docente/dashboard');
+      } else if (userData.rol === 'directivo') {
+        navigate('/directivo/dashboard');
+      } else if (userData.rol === 'administrador') {
+        navigate('/admin/dashboard');
       } else {
         navigate('/');
       }
