@@ -113,12 +113,14 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Logo y título */}
           <div className="flex items-center space-x-4">
-            <Link to="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">CET</span>
-              </div>
+            <Link to="/" className="flex items-center space-x-3">
+              <img 
+                src="/lovable-uploads/23fe776b-bfc4-4d5b-91a2-a06fdf2c43d1.png" 
+                alt="Logo CET 31" 
+                className="w-10 h-10 object-contain"
+              />
               <span className="text-xl font-bold text-gray-900">
-                Sistema de Gestión Escolar
+                SISTEMA DE GESTIÓN ESCOLAR - CET N° 31
               </span>
             </Link>
           </div>
