@@ -18,6 +18,7 @@ import Aulas from "./pages/Aulas";
 import Estudiantes from "./pages/Estudiantes";
 import Docentes from "./pages/Docentes";
 import Asignaturas from "./pages/Asignaturas";
+import Configuracion from "./pages/Configuracion";
 import AttendanceHistory from "./pages/attendance/AttendanceHistory";
 import AttendanceDetails from "./pages/attendance/AttendanceDetails";
 import EstudiantePerfil from "./pages/estudiantes/EstudiantePerfil";
@@ -133,6 +134,16 @@ const App = () => (
               element={
                 <ProtectedRoute allowedRoles={['administrador']}>
                   <UserForm isEdit={true} />
+                </ProtectedRoute>
+              } 
+            />
+
+            {/* Configuración - Solo administradores */}
+            <Route 
+              path="/configuracion" 
+              element={
+                <ProtectedRoute allowedRoles={['administrador']}>
+                  <Configuracion />
                 </ProtectedRoute>
               } 
             />
