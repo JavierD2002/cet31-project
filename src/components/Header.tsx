@@ -1,99 +1,237 @@
 
-import { Link } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Button } from '@/components/ui/button';
-import {
+import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { User, LogOut, Settings } from 'lucide-react';
+} from '@/components/ui/dropdown-menu';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { 
+  LogOut, 
+  User, 
+  Settings,
+  Home,
+  Users,
+  GraduationCap,
+  BookOpen,
+  Calendar,
+  FileText,
+  BarChart3,
+  Building
+} from 'lucide-react';
+import NotificationCenter from './NotificationCenter';
 
 const Header = () => {
-  const { user, logout, isAuthenticated } = useAuth();
+  const { user, logout, hasRole } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
 
-  // Función para obtener el texto del rol en español
-  const getRolText = () => {
-    if (!user) return '';
-    
-    switch (user.rol) {
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const getUserInitials = (nombre: string, apellido: string) => {
+    return `${nombre.charAt(0)}${apellido.charAt(0)}`.toUpperCase();
+  };
+
+  const getRoleBadgeColor = (rol: string) => {
+    switch (rol) {
       case 'administrador':
-        return 'Administrador';
+        return 'bg-red-100 text-red-800';
       case 'directivo':
-        return 'Directivo';
+        return 'bg-purple-100 text-purple-800';
       case 'docente':
-        return 'Docente';
+        return 'bg-blue-100 text-blue-800';
       case 'estudiante':
-        return 'Estudiante';
+        return 'bg-green-100 text-green-800';
       default:
-        return '';
+        return 'bg-gray-100 text-gray-800';
     }
   };
 
+  const getNavigationItems = () => {
+    const items = [];
+
+    // Dashboard según rol
+    if (hasRole('administrador')) {
+      items.push({ to: '/admin/dashboard', label: 'Dashboard Admin', icon: Home });
+    } else if (hasRole('directivo')) {
+      items.push({ to: '/directivo/dashboard', label: 'Dashboard Directivo', icon: Home });
+    } else if (hasRole('docente')) {
+      items.push({ to: '/docente/dashboard', label: 'Dashboard Docente', icon: Home });
+    } else if (hasRole('estudiante')) {
+      items.push({ to: '/estudiante/dashboard', label: 'Mi Dashboard', icon: Home });
+    }
+
+    // Navegación común para administradores y directivos
+    if (hasRole(['administrador', 'directivo'])) {
+      items.push(
+        { to: '/estudiantes', label: 'Estudiantes', icon: GraduationCap },
+        { to: '/docentes', label: 'Docentes', icon: Users },
+        { to: '/asignaturas', label: 'Asignaturas', icon: BookOpen },
+        { to: '/aulas', label: 'Aulas', icon: Building }
+      );
+    }
+
+    // Navegación para docentes, directivos y administradores
+    if (hasRole(['docente', 'directivo', 'administrador'])) {
+      items.push(
+        { to: '/asistencia', label: 'Asistencia', icon: Calendar },
+        { to: '/calificaciones', label: 'Calificaciones', icon: FileText },
+        { to: '/libro-de-tema', label: 'Libro de Tema', icon: BookOpen },
+        { to: '/informes', label: 'Informes', icon: BarChart3 }
+      );
+    }
+
+    // Administración exclusiva para administradores
+    if (hasRole('administrador')) {
+      items.push(
+        { to: '/admin/usuarios', label: 'Gestión de Usuarios', icon: Settings }
+      );
+    }
+
+    return items;
+  };
+
+  const navigationItems = getNavigationItems();
+
+  if (!user) {
+    return null;
+  }
+
   return (
-    <header className="bg-blue-600 text-white p-4 shadow-md">
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="flex items-center">
-          <img 
-            src="/lovable-uploads/23fe776b-bfc4-4d5b-91a2-a06fdf2c43d1.png" 
-            alt="Logo CET31" 
-            className="h-10 mr-3" 
-          />
-          <h1 className="text-2xl font-bold">Sistema de Gestión Escolar - CET31</h1>
-        </div>
-        
-        {isAuthenticated ? (
+    <header className="bg-white shadow-sm border-b">
+      <div className="container mx-auto px-4">
+        <div className="flex items-center justify-between h-16">
+          {/* Logo y título */}
           <div className="flex items-center space-x-4">
-            <span className="text-sm hidden sm:inline-block">
-              {user?.nombre} {user?.apellido} - {getRolText()}
-            </span>
+            <Link to="/" className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                <span className="text-white font-bold text-sm">CET</span>
+              </div>
+              <span className="text-xl font-bold text-gray-900">
+                Sistema de Gestión Escolar
+              </span>
+            </Link>
+          </div>
+
+          {/* Navegación principal */}
+          <nav className="hidden md:flex items-center space-x-1">
+            {navigationItems.slice(0, 6).map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.to;
+              
+              return (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    isActive
+                      ? 'bg-blue-100 text-blue-700'
+                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                  }`}
+                >
+                  <Icon className="h-4 w-4" />
+                  <span>{item.label}</span>
+                </Link>
+              );
+            })}
+            
+            {/* Más opciones si hay muchos elementos */}
+            {navigationItems.length > 6 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm">
+                    Más
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  {navigationItems.slice(6).map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <DropdownMenuItem key={item.to} asChild>
+                        <Link to={item.to} className="flex items-center space-x-2">
+                          <Icon className="h-4 w-4" />
+                          <span>{item.label}</span>
+                        </Link>
+                      </DropdownMenuItem>
+                    );
+                  })}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
+          </nav>
+
+          {/* Área de usuario */}
+          <div className="flex items-center space-x-3">
+            {/* Centro de notificaciones */}
+            <NotificationCenter />
+
+            {/* Información del usuario */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="rounded-full text-white hover:bg-blue-700">
-                  <User className="h-5 w-5" />
+                <Button variant="ghost" className="flex items-center space-x-2">
+                  <Avatar className="h-8 w-8">
+                    <AvatarFallback className="bg-blue-100 text-blue-700">
+                      {getUserInitials(user.nombre, user.apellido)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="hidden md:block text-left">
+                    <p className="text-sm font-medium">{user.nombre} {user.apellido}</p>
+                    <Badge 
+                      variant="secondary" 
+                      className={`text-xs ${getRoleBadgeColor(user.rol)}`}
+                    >
+                      {user.rol.charAt(0).toUpperCase() + user.rol.slice(1)}
+                    </Badge>
+                  </div>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>Mi cuenta</DropdownMenuLabel>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuLabel>
+                  <div>
+                    <p className="font-medium">{user.nombre} {user.apellido}</p>
+                    <p className="text-xs text-gray-500">{user.email}</p>
+                  </div>
+                </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 
-                <DropdownMenuItem asChild>
-                  <Link to={user?.rol === 'estudiante' 
-                    ? `/estudiantes/${user?.id}/perfil` 
-                    : user?.rol === 'docente'
-                      ? `/docentes/${user?.id}/perfil`
-                      : "/perfil"
-                  }>
-                    <User className="mr-2 h-4 w-4" />
-                    <span>Mi perfil</span>
-                  </Link>
-                </DropdownMenuItem>
-                
-                {(user?.rol === 'administrador' || user?.rol === 'directivo') && (
+                {/* Perfil según el rol */}
+                {hasRole('estudiante') && (
                   <DropdownMenuItem asChild>
-                    <Link to="/configuracion">
-                      <Settings className="mr-2 h-4 w-4" />
-                      <span>Configuración</span>
+                    <Link to={`/estudiantes/${user.id}/perfil`} className="flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>Mi Perfil</span>
                     </Link>
                   </DropdownMenuItem>
                 )}
                 
+                {hasRole('docente') && (
+                  <DropdownMenuItem asChild>
+                    <Link to={`/docentes/${user.id}/perfil`} className="flex items-center space-x-2">
+                      <User className="h-4 w-4" />
+                      <span>Mi Perfil</span>
+                    </Link>
+                  </DropdownMenuItem>
+                )}
+
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={logout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Cerrar sesión</span>
+                <DropdownMenuItem onClick={handleLogout} className="text-red-600">
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Cerrar Sesión
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
-        ) : (
-          <Button variant="outline" size="sm" asChild className="text-white border-white hover:bg-blue-700">
-            <Link to="/login">Iniciar sesión</Link>
-          </Button>
-        )}
+        </div>
       </div>
     </header>
   );

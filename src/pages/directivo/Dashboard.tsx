@@ -28,7 +28,7 @@ import {
   Target,
   Clock
 } from 'lucide-react';
-import { getStudents, getTeachers, getAttendanceHistory } from '@/services/supabase';
+import { getStudents, getTeachers } from '@/services/supabase';
 
 const DirectivoDashboard = () => {
   const { user } = useAuth();
@@ -42,11 +42,6 @@ const DirectivoDashboard = () => {
   const { data: teachers } = useQuery({
     queryKey: ['allTeachers'],
     queryFn: getTeachers
-  });
-
-  const { data: attendanceData } = useQuery({
-    queryKey: ['generalAttendance'],
-    queryFn: getAttendanceHistory
   });
 
   // Estadísticas calculadas
