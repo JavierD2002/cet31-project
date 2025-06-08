@@ -13,7 +13,6 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { School, Loader2 } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const Login = () => {
   const [email, setEmail] = useState('');
@@ -38,17 +37,6 @@ const Login = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="mb-4">
-            <Alert className="bg-blue-50 text-blue-800 border-blue-200">
-              <AlertDescription>
-                Para acceso administrativo, use:
-                <br />
-                Usuario: <strong>admin</strong>
-                <br />
-                Contraseña: <strong>admin</strong>
-              </AlertDescription>
-            </Alert>
-          </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Usuario o correo electrónico</Label>
