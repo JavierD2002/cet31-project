@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { 
   CalendarIcon, 
   BookIcon, 
@@ -10,7 +11,8 @@ import {
   EditIcon,
   TrashIcon,
   FileTextIcon,
-  Clock
+  Clock,
+  ArrowLeftIcon
 } from 'lucide-react';
 import {
   Card,
@@ -205,10 +207,20 @@ const LibroDeTema = () => {
       {/* Header */}
       <header className="bg-purple-600 text-white p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center">
-            <BookIcon className="mr-2" />
-            Libro de Tema
-          </h1>
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 text-white hover:text-purple-200 transition-colors"
+            >
+              <ArrowLeftIcon className="h-5 w-5" />
+              <span className="text-sm">Volver al inicio</span>
+            </Link>
+            <div className="h-6 w-px bg-purple-400"></div>
+            <h1 className="text-2xl font-bold flex items-center">
+              <BookIcon className="mr-2" />
+              Libro de Tema
+            </h1>
+          </div>
           <div className="flex items-center space-x-4">
             <span className="text-sm">Sistema de Gestión Escolar</span>
           </div>
