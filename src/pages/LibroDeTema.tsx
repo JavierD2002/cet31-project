@@ -44,12 +44,12 @@ import TopicForm from '@/components/topics/TopicForm';
 const LibroDeTema = () => {
   const [filtros, setFiltros] = useState({
     busqueda: '',
-    curso: '',
-    asignatura_id: '',
-    docente_id: '',
+    curso: 'todos',
+    asignatura_id: 'todas',
+    docente_id: 'todos',
     fecha_desde: '',
     fecha_hasta: '',
-    estado: ''
+    estado: 'todos'
   });
   
   const [modalAbierto, setModalAbierto] = useState(false);
@@ -62,9 +62,9 @@ const LibroDeTema = () => {
   const { data: temas, isLoading } = useQuery({
     queryKey: ['topics', filtros],
     queryFn: () => getTopics({
-      curso: filtros.curso || undefined,
-      asignatura_id: filtros.asignatura_id ? parseInt(filtros.asignatura_id) : undefined,
-      docente_id: filtros.docente_id ? parseInt(filtros.docente_id) : undefined,
+      curso: filtros.curso !== 'todos' ? filtros.curso : undefined,
+      asignatura_id: filtros.asignatura_id !== 'todas' ? parseInt(filtros.asignatura_id) : undefined,
+      docente_id: filtros.docente_id !== 'todos' ? parseInt(filtros.docente_id) : undefined,
       fecha_desde: filtros.fecha_desde || undefined,
       fecha_hasta: filtros.fecha_hasta || undefined
     })
@@ -89,6 +89,7 @@ const LibroDeTema = () => {
         title: "Éxito",
         description: "Tema registrado correctamente",
       });
+      setModalAbierto(false);
     },
     onError: () => {
       toast({
@@ -107,6 +108,7 @@ const LibroDeTema = () => {
         title: "Éxito",
         description: "Tema actualizado correctamente",
       });
+      setModalAbierto(false);
     },
     onError: () => {
       toast({
@@ -141,7 +143,7 @@ const LibroDeTema = () => {
                            tema.contenido.toLowerCase().includes(filtros.busqueda.toLowerCase()) ||
                            tema.actividad.toLowerCase().includes(filtros.busqueda.toLowerCase());
     
-    const coincideEstado = filtros.estado ? tema.estado === filtros.estado : true;
+    const coincideEstado = filtros.estado !== 'todos' ? tema.estado === filtros.estado : true;
     
     return coincideBusqueda && coincideEstado;
   }) || [];
@@ -172,12 +174,12 @@ const LibroDeTema = () => {
   const limpiarFiltros = () => {
     setFiltros({
       busqueda: '',
-      curso: '',
-      asignatura_id: '',
-      docente_id: '',
+      curso: 'todos',
+      asignatura_id: 'todas',
+      docente_id: 'todos',
       fecha_desde: '',
       fecha_hasta: '',
-      estado: ''
+      estado: 'todos'
     });
   };
 
@@ -208,7 +210,7 @@ const LibroDeTema = () => {
             Libro de Tema
           </h1>
           <div className="flex items-center space-x-4">
-            <span className="text-sm">Usuario: Docente</span>
+            <span className="text-sm">Sistema de Gestión Escolar</span>
           </div>
         </div>
       </header>
@@ -267,7 +269,7 @@ const LibroDeTema = () => {
                     <SelectValue placeholder="Todos los cursos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los cursos</SelectItem>
+                    <SelectItem value="todos">Todos los cursos</SelectItem>
                     {cursos.map(curso => (
                       <SelectItem key={curso} value={curso}>{curso}</SelectItem>
                     ))}
@@ -282,7 +284,7 @@ const LibroDeTema = () => {
                     <SelectValue placeholder="Todas las asignaturas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las asignaturas</SelectItem>
+                    <SelectItem value="todas">Todas las asignaturas</SelectItem>
                     {asignaturas?.map(asignatura => (
                       <SelectItem key={asignatura.id} value={asignatura.id.toString()}>
                         {asignatura.nombre}
@@ -299,7 +301,7 @@ const LibroDeTema = () => {
                     <SelectValue placeholder="Todos los estados" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los estados</SelectItem>
+                    <SelectItem value="todos">Todos los estados</SelectItem>
                     <SelectItem value="planificado">Planificado</SelectItem>
                     <SelectItem value="en_progreso">En Progreso</SelectItem>
                     <SelectItem value="completado">Completado</SelectItem>
