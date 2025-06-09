@@ -108,7 +108,7 @@ const Header = () => {
   }
 
   return (
-    <header className="bg-white shadow-sm border-b">
+    <header className="bg-blue-600 shadow-sm border-b">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo y título */}
@@ -119,7 +119,7 @@ const Header = () => {
                 alt="Logo CET 31" 
                 className="w-10 h-10 object-contain"
               />
-              <span className="text-xl font-bold text-gray-900">
+              <span className="text-xl font-bold text-white">
                 SISTEMA DE GESTIÓN ESCOLAR - CET N° 31
               </span>
             </Link>
@@ -137,8 +137,8 @@ const Header = () => {
                   to={item.to}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                      ? 'bg-blue-800 text-white'
+                      : 'text-blue-100 hover:text-white hover:bg-blue-700'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -151,7 +151,7 @@ const Header = () => {
             {navigationItems.length > 6 && (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className="text-blue-100 hover:text-white hover:bg-blue-700">
                     Más
                   </Button>
                 </DropdownMenuTrigger>
@@ -180,14 +180,14 @@ const Header = () => {
             {/* Información del usuario */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="flex items-center space-x-2">
+                <Button variant="ghost" className="flex items-center space-x-2 text-white hover:bg-blue-700">
                   <Avatar className="h-8 w-8">
                     <AvatarFallback className="bg-blue-100 text-blue-700">
                       {getUserInitials(user.nombre, user.apellido)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="hidden md:block text-left">
-                    <p className="text-sm font-medium">{user.nombre} {user.apellido}</p>
+                    <p className="text-sm font-medium text-white">{user.nombre} {user.apellido}</p>
                     <Badge 
                       variant="secondary" 
                       className={`text-xs ${getRoleBadgeColor(user.rol)}`}
