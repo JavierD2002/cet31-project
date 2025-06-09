@@ -12,12 +12,17 @@ import {
   LayoutDashboard,
   BookUser,
   User,
-  Settings
+  Settings,
+  Home,
+  BarChart3,
+  Building
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
+import { AppSidebar } from '@/components/AppSidebar';
 
 const Index = () => {
   const { hasRole } = useAuth();
@@ -94,51 +99,61 @@ const Index = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <Header />
+    <SidebarProvider>
+      <div className="min-h-screen bg-gray-50 flex w-full">
+        <AppSidebar />
+        <div className="flex-1 flex flex-col">
+          <Header />
 
-      <main className="container mx-auto py-12 px-4">
-        <h1 className="text-3xl font-bold mb-2">Panel de Control</h1>
-        <p className="text-gray-500 mb-8">Bienvenido al Sistema de Gestión Escolar</p>
+          <main className="container mx-auto py-12 px-4 flex-1">
+            <div className="flex items-center space-x-3 mb-8">
+              <SidebarTrigger />
+              <div>
+                <h1 className="text-3xl font-bold mb-2">Panel de Control</h1>
+                <p className="text-gray-500">Bienvenido al Sistema de Gestión Escolar</p>
+              </div>
+            </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {menuItems.map((item, index) => (
-            <Link to={item.link} key={index}>
-              <Card className="hover:shadow-md transition-shadow duration-200 h-full">
-                <CardContent className="p-6 flex items-start space-x-4">
-                  <div className={`${item.color} text-white p-3 rounded-lg`}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-lg">{item.title}</h3>
-                    <p className="text-gray-500 text-sm">{item.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {menuItems.map((item, index) => (
+                <Link to={item.link} key={index}>
+                  <Card className="hover:shadow-md transition-shadow duration-200 h-full">
+                    <CardContent className="p-6 flex items-start space-x-4">
+                      <div className={`${item.color} text-white p-3 rounded-lg`}>
+                        {item.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-lg">{item.title}</h3>
+                        <p className="text-gray-500 text-sm">{item.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
 
-          {/* Módulos exclusivos para administradores */}
-          {isAdmin && adminModules.map((item, index) => (
-            <Link to={item.link} key={`admin-${index}`}>
-              <Card className="hover:shadow-md transition-shadow duration-200 h-full border-orange-200">
-                <CardContent className="p-6 flex items-start space-x-4">
-                  <div className={`${item.color} text-white p-3 rounded-lg`}>
-                    {item.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-medium text-lg">{item.title}</h3>
-                    <p className="text-gray-500 text-sm">{item.description}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
+              {/* Módulos exclusivos para administradores */}
+              {isAdmin && adminModules.map((item, index) => (
+                <Link to={item.link} key={`admin-${index}`}>
+                  <Card className="hover:shadow-md transition-shadow duration-200 h-full border-orange-200">
+                    <CardContent className="p-6 flex items-start space-x-4">
+                      <div className={`${item.color} text-white p-3 rounded-lg`}>
+                        {item.icon}
+                      </div>
+                      <div>
+                        <h3 className="font-medium text-lg">{item.title}</h3>
+                        <p className="text-gray-500 text-sm">{item.description}</p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </main>
+
+          <Footer />
         </div>
-      </main>
-
-      <Footer />
-    </div>
+      </div>
+    </SidebarProvider>
   );
 };
 
