@@ -18,6 +18,7 @@ import {
   Building
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { useAuth } from '@/context/AuthContext';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
@@ -106,12 +107,20 @@ const Index = () => {
           <Header />
 
           <main className="container mx-auto py-12 px-4 flex-1">
-            <div className="flex items-center space-x-3 mb-8">
-              <SidebarTrigger />
-              <div>
-                <h1 className="text-3xl font-bold mb-2">Panel de Control</h1>
-                <p className="text-gray-500">Bienvenido al Sistema de Gestión Escolar</p>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center space-x-3">
+                <SidebarTrigger />
+                <div>
+                  <h1 className="text-3xl font-bold mb-2">Panel de Control</h1>
+                  <p className="text-gray-500">Bienvenido al Sistema de Gestión Escolar</p>
+                </div>
               </div>
+              <Button asChild variant="outline">
+                <Link to="/" className="flex items-center space-x-2">
+                  <Home className="h-4 w-4" />
+                  <span>Volver al Inicio</span>
+                </Link>
+              </Button>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,8 @@ import {
   Shield, 
   Globe,
   Save,
-  RotateCcw
+  RotateCcw,
+  Home
 } from 'lucide-react';
 
 const Configuracion = () => {
@@ -137,18 +138,26 @@ const Configuracion = () => {
       
       <main className="container mx-auto py-8 px-4">
         <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center gap-2">
-              <Settings className="h-8 w-8" />
-              Configuración del Sistema
-            </h1>
-            <p className="text-gray-600 mt-2">
-              Gestiona los parámetros y preferencias del sistema educativo
-            </p>
+          <div className="flex items-center gap-2">
+            <Settings className="h-8 w-8" />
+            <div>
+              <h1 className="text-3xl font-bold">Configuración del Sistema</h1>
+              <p className="text-gray-600 mt-2">
+                Gestiona los parámetros y preferencias del sistema educativo
+              </p>
+            </div>
           </div>
-          <Badge variant="outline" className="bg-blue-50 text-blue-700">
-            Administrador
-          </Badge>
+          <div className="flex items-center gap-3">
+            <Badge variant="outline" className="bg-blue-50 text-blue-700">
+              Administrador
+            </Badge>
+            <Button asChild variant="outline">
+              <Link to="/" className="flex items-center space-x-2">
+                <Home className="h-4 w-4" />
+                <span>Volver al Inicio</span>
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
