@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Home } from 'lucide-react';
@@ -167,12 +166,20 @@ const Informes = () => {
           <Header />
 
           <main className="container mx-auto py-8 px-4 flex-1">
-            <div className="flex items-center space-x-3 mb-6">
-              <SidebarTrigger />
-              <div>
-                <h2 className="text-2xl font-semibold">Informes Pedagógicos</h2>
-                <p className="text-gray-500">Gestión de informes pedagógicos por curso</p>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center space-x-3">
+                <SidebarTrigger />
+                <div>
+                  <h2 className="text-2xl font-semibold">Informes Pedagógicos</h2>
+                  <p className="text-gray-500">Gestión de informes pedagógicos por curso</p>
+                </div>
               </div>
+              <Button asChild variant="outline">
+                <Link to="/" className="flex items-center space-x-2">
+                  <Home className="h-4 w-4" />
+                  <span>Volver al Inicio</span>
+                </Link>
+              </Button>
             </div>
 
             {/* Estadísticas */}
