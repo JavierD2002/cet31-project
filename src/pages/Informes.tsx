@@ -1,48 +1,16 @@
 
 import React, { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Search, FileText, Plus, ChevronLeft, Download, Eye, Edit, Trash2, Save } from 'lucide-react';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Link } from 'react-router-dom';
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from '@/context/AuthContext';
-import Header from '@/components/Header';
-import Footer from '@/components/Footer';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
+import Header from '@/components/Header';
+import Footer from '@/components/Footer';
+import { useAuth } from '@/context/AuthContext';
+import { useToast } from "@/hooks/use-toast";
+import ReportCreationForm from '@/components/reports/ReportCreationForm';
+import ReportsList from '@/components/reports/ReportsList';
+import ReportViewModal from '@/components/reports/ReportViewModal';
+import ReportCreationModal from '@/components/reports/ReportCreationModal';
+import ReportsStatistics from '@/components/reports/ReportsStatistics';
 
 // Mock data para los informes pedagógicos
 const mockInformes = [
@@ -79,13 +47,6 @@ const mockEstudiantes = [
   { id: 2, nombre: "Benítez", apellido: "Carlos", curso: "1° Año A" },
   { id: 3, nombre: "Castro", apellido: "Ana", curso: "1° Año A" },
   { id: 4, nombre: "Díaz", apellido: "Pedro", curso: "1° Año A" }
-];
-
-const mockAsignaturas = [
-  { id: 1, nombre: "Matemática" },
-  { id: 2, nombre: "Lengua" },
-  { id: 3, nombre: "Historia" },
-  { id: 4, nombre: "Geografía" }
 ];
 
 const mockCursos = ["1° Año A", "1° Año B", "2° Año A", "2° Año B"];
@@ -212,353 +173,47 @@ const Informes = () => {
             </div>
 
             {/* Estadísticas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-blue-600">{mockInformes.length}</div>
-                  <div className="text-sm text-gray-600">Informes Totales</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-green-600">
-                    {mockInformes.filter(i => new Date(i.fecha).getMonth() === new Date().getMonth()).length}
-                  </div>
-                  <div className="text-sm text-gray-600">Este Mes</div>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardContent className="p-4">
-                  <div className="text-2xl font-bold text-purple-600">{mockCursos.length}</div>
-                  <div className="text-sm text-gray-600">Cursos Activos</div>
-                </CardContent>
-              </Card>
-            </div>
+            <ReportsStatistics mockInformes={mockInformes} mockCursos={mockCursos} />
 
             {/* Crear nuevo informe - Solo para docentes */}
             {hasRole('docente') && (
-              <Card className="mb-6">
-                <CardHeader>
-                  <CardTitle>Crear Nuevo Informe Pedagógico</CardTitle>
-                  <CardDescription>
-                    Complete los datos para crear un nuevo informe
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <div>
-                      <Label htmlFor="fecha">Fecha</Label>
-                      <Input
-                        id="fecha"
-                        type="date"
-                        value={newReport.fecha}
-                        onChange={(e) => setNewReport(prev => ({ ...prev, fecha: e.target.value }))}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="asignatura">Asignatura</Label>
-                      <Select value={newReport.asignatura} onValueChange={(value) => setNewReport(prev => ({ ...prev, asignatura: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar asignatura" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockAsignaturas.map(asig => (
-                            <SelectItem key={asig.id} value={asig.nombre}>{asig.nombre}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div>
-                      <Label htmlFor="curso">Curso</Label>
-                      <Select value={newReport.curso} onValueChange={(value) => setNewReport(prev => ({ ...prev, curso: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Seleccionar curso" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {mockCursos.map(curso => (
-                            <SelectItem key={curso} value={curso}>{curso}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    <div className="flex items-end">
-                      <Button onClick={handleStartNewReport} className="w-full">
-                        <Plus className="h-4 w-4 mr-2" />
-                        Crear Informe
-                      </Button>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <ReportCreationForm
+                newReport={newReport}
+                setNewReport={setNewReport}
+                onStartNewReport={handleStartNewReport}
+              />
             )}
 
             {/* Lista de informes */}
-            <Card className="mb-6">
-              <CardHeader>
-                <CardTitle>Lista de Informes</CardTitle>
-                <CardDescription>
-                  Visualice y gestione los informes pedagógicos
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex mb-6 gap-4">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                    <Input 
-                      placeholder="Buscar por curso, asignatura o docente..."
-                      className="pl-10"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                  </div>
-                  <Select value={selectedCourse} onValueChange={setSelectedCourse}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Todos los cursos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todos los cursos</SelectItem>
-                      {mockCursos.map(curso => (
-                        <SelectItem key={curso} value={curso}>{curso}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Select value={selectedSubject} onValueChange={setSelectedSubject}>
-                    <SelectTrigger className="w-48">
-                      <SelectValue placeholder="Todas las asignaturas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">Todas las asignaturas</SelectItem>
-                      {mockAsignaturas.map(asig => (
-                        <SelectItem key={asig.id} value={asig.nombre}>{asig.nombre}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div className="border rounded-md overflow-hidden">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Fecha</TableHead>
-                        <TableHead>Curso</TableHead>
-                        <TableHead>Asignatura</TableHead>
-                        <TableHead>Docente</TableHead>
-                        <TableHead>Estudiantes</TableHead>
-                        <TableHead className="text-right">Acciones</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredInformes.map((informe) => (
-                        <TableRow key={informe.id}>
-                          <TableCell>{new Date(informe.fecha).toLocaleDateString()}</TableCell>
-                          <TableCell><Badge variant="outline">{informe.curso}</Badge></TableCell>
-                          <TableCell>{informe.asignatura}</TableCell>
-                          <TableCell>{informe.docente_nombre}</TableCell>
-                          <TableCell>{informe.estudiantes.length} estudiantes</TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setEditingReport(informe)}
-                              >
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                              {(hasRole(['directivo', 'administrador']) || user?.id === informe.docente_id) && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => generatePDF(informe)}
-                                >
-                                  <Download className="h-4 w-4" />
-                                </Button>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-                
-                {filteredInformes.length === 0 && (
-                  <div className="text-center py-8 text-gray-500">
-                    No se encontraron informes con los criterios de búsqueda.
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <ReportsList
+              filteredInformes={filteredInformes}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedCourse={selectedCourse}
+              setSelectedCourse={setSelectedCourse}
+              selectedSubject={selectedSubject}
+              setSelectedSubject={setSelectedSubject}
+              onViewReport={setEditingReport}
+              onGeneratePDF={generatePDF}
+              hasRole={hasRole}
+              user={user}
+            />
 
             {/* Modal para crear informe con estudiantes */}
-            <Dialog open={isCreating} onOpenChange={setIsCreating}>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    Informe Pedagógico - {newReport.curso} - {newReport.asignatura}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Complete la evaluación para cada estudiante
-                  </DialogDescription>
-                </DialogHeader>
-
-                <div className="space-y-6">
-                  {newReport.estudiantes.map((estudiante) => (
-                    <Card key={estudiante.id}>
-                      <CardHeader>
-                        <CardTitle className="text-lg">{estudiante.nombre}</CardTitle>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <Label>1. Apropiación/Construcción de Saberes/Contenidos</Label>
-                            <Select 
-                              value={estudiante.apropiacion} 
-                              onValueChange={(value) => handleStudentFieldChange(estudiante.id, 'apropiacion', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="En Proceso">En Proceso</SelectItem>
-                                <SelectItem value="Lograda">Lograda</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div>
-                            <Label>2. Participación</Label>
-                            <Select 
-                              value={estudiante.participacion} 
-                              onValueChange={(value) => handleStudentFieldChange(estudiante.id, 'participacion', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Sostenida">Sostenida</SelectItem>
-                                <SelectItem value="Intermitente">Intermitente</SelectItem>
-                                <SelectItem value="Nula">Nula</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <div>
-                            <Label>3. Comunicación/Vinculación</Label>
-                            <Select 
-                              value={estudiante.comunicacion} 
-                              onValueChange={(value) => handleStudentFieldChange(estudiante.id, 'comunicacion', value)}
-                            >
-                              <SelectTrigger>
-                                <SelectValue placeholder="Seleccionar" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="Sostenida">Sostenida</SelectItem>
-                                <SelectItem value="Intermitente">Intermitente</SelectItem>
-                                <SelectItem value="Nula">Nula</SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                        </div>
-                        
-                        <div>
-                          <Label>4. Observaciones</Label>
-                          <Textarea
-                            value={estudiante.observaciones}
-                            onChange={(e) => handleStudentFieldChange(estudiante.id, 'observaciones', e.target.value)}
-                            placeholder="Escriba observaciones detalladas sobre el estudiante..."
-                            rows={3}
-                          />
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                  
-                  <div className="flex justify-end space-x-2 pt-4 border-t">
-                    <Button variant="outline" onClick={() => setIsCreating(false)}>
-                      Cancelar
-                    </Button>
-                    <Button onClick={handleSaveReport}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Guardar Informe
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+            <ReportCreationModal
+              isCreating={isCreating}
+              onClose={() => setIsCreating(false)}
+              newReport={newReport}
+              onStudentFieldChange={handleStudentFieldChange}
+              onSaveReport={handleSaveReport}
+            />
 
             {/* Modal para ver/editar informe existente */}
-            <Dialog open={!!editingReport} onOpenChange={() => setEditingReport(null)}>
-              <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>
-                    Ver Informe - {editingReport?.curso} - {editingReport?.asignatura}
-                  </DialogTitle>
-                  <DialogDescription>
-                    Fecha: {editingReport && new Date(editingReport.fecha).toLocaleDateString()} | 
-                    Docente: {editingReport?.docente_nombre}
-                  </DialogDescription>
-                </DialogHeader>
-
-                {editingReport && (
-                  <div className="space-y-6">
-                    {editingReport.estudiantes.map((estudiante: any) => (
-                      <Card key={estudiante.id}>
-                        <CardHeader>
-                          <CardTitle className="text-lg">{estudiante.nombre}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="space-y-4">
-                          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <div>
-                              <Label>Apropiación/Construcción de Saberes</Label>
-                              <Badge variant={estudiante.apropiacion === 'Lograda' ? 'default' : 'secondary'}>
-                                {estudiante.apropiacion}
-                              </Badge>
-                            </div>
-                            
-                            <div>
-                              <Label>Participación</Label>
-                              <Badge variant={
-                                estudiante.participacion === 'Sostenida' ? 'default' : 
-                                estudiante.participacion === 'Intermitente' ? 'secondary' : 'destructive'
-                              }>
-                                {estudiante.participacion}
-                              </Badge>
-                            </div>
-                            
-                            <div>
-                              <Label>Comunicación/Vinculación</Label>
-                              <Badge variant={
-                                estudiante.comunicacion === 'Sostenida' ? 'default' : 
-                                estudiante.comunicacion === 'Intermitente' ? 'secondary' : 'destructive'
-                              }>
-                                {estudiante.comunicacion}
-                              </Badge>
-                            </div>
-                          </div>
-                          
-                          <div>
-                            <Label>Observaciones</Label>
-                            <div className="p-3 bg-gray-50 rounded-md min-h-[60px]">
-                              {estudiante.observaciones || "Sin observaciones"}
-                            </div>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                    
-                    <div className="flex justify-end space-x-2 pt-4 border-t">
-                      <Button variant="outline" onClick={() => setEditingReport(null)}>
-                        Cerrar
-                      </Button>
-                      <Button onClick={() => generatePDF(editingReport)}>
-                        <Download className="h-4 w-4 mr-2" />
-                        Descargar PDF
-                      </Button>
-                    </div>
-                  </div>
-                )}
-              </DialogContent>
-            </Dialog>
+            <ReportViewModal
+              editingReport={editingReport}
+              onClose={() => setEditingReport(null)}
+              onGeneratePDF={generatePDF}
+            />
           </main>
 
           <Footer />
