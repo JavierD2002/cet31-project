@@ -87,7 +87,7 @@ const ReportsList = ({
               <SelectValue placeholder="Todos los cursos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos los cursos</SelectItem>
+              <SelectItem value="todos">Todos los cursos</SelectItem>
               {mockCursos.map(curso => (
                 <SelectItem key={curso} value={curso}>{curso}</SelectItem>
               ))}
@@ -98,7 +98,7 @@ const ReportsList = ({
               <SelectValue placeholder="Todas las asignaturas" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas las asignaturas</SelectItem>
+              <SelectItem value="todas">Todas las asignaturas</SelectItem>
               {mockAsignaturas.map(asig => (
                 <SelectItem key={asig.id} value={asig.nombre}>{asig.nombre}</SelectItem>
               ))}

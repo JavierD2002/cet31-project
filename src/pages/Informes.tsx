@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '@/components/AppSidebar';
@@ -54,8 +53,8 @@ const mockCursos = ["1° Año A", "1° Año B", "2° Año A", "2° Año B"];
 const Informes = () => {
   const { user, hasRole } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCourse, setSelectedCourse] = useState("");
-  const [selectedSubject, setSelectedSubject] = useState("");
+  const [selectedCourse, setSelectedCourse] = useState("todos");
+  const [selectedSubject, setSelectedSubject] = useState("todas");
   const [isCreating, setIsCreating] = useState(false);
   const [editingReport, setEditingReport] = useState<any>(null);
   
@@ -71,8 +70,8 @@ const Informes = () => {
 
   // Filter informes
   const filteredInformes = mockInformes.filter(informe => 
-    (selectedCourse === "" || informe.curso === selectedCourse) &&
-    (selectedSubject === "" || informe.asignatura === selectedSubject) &&
+    (selectedCourse === "todos" || informe.curso === selectedCourse) &&
+    (selectedSubject === "todas" || informe.asignatura === selectedSubject) &&
     (searchTerm === "" || 
      informe.curso.toLowerCase().includes(searchTerm.toLowerCase()) ||
      informe.asignatura.toLowerCase().includes(searchTerm.toLowerCase()) ||
