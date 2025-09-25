@@ -1,7 +1,8 @@
 
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { CalendarIcon, FilterIcon, SearchIcon, DownloadIcon } from 'lucide-react';
+import { CalendarIcon, FilterIcon, SearchIcon, DownloadIcon, ArrowLeft } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import {
   Card,
   CardContent,
@@ -70,10 +71,23 @@ const AttendanceHistory = () => {
     <div className="min-h-screen bg-gray-50">
       <header className="bg-blue-600 text-white p-4 shadow-md">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold flex items-center">
-            <CalendarIcon className="mr-2" />
-            Historial de Asistencia
-          </h1>
+          <div className="flex items-center space-x-4">
+            <Link 
+              to="/" 
+              className="flex items-center space-x-2 text-white hover:text-blue-200 transition-colors"
+            >
+              <ArrowLeft className="h-5 w-5" />
+              <span className="text-sm">Volver al inicio</span>
+            </Link>
+            <div className="h-6 w-px bg-blue-400"></div>
+            <h1 className="text-2xl font-bold flex items-center">
+              <CalendarIcon className="mr-2" />
+              Historial de Asistencia
+            </h1>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-sm">Sistema de Gestión Escolar</span>
+          </div>
         </div>
       </header>
 
