@@ -182,7 +182,7 @@ const ReportEditor = ({
                   <SelectValue placeholder="Seleccionar plantilla (opcional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Sin plantilla</SelectItem>
+                  <SelectItem value="none">Sin plantilla</SelectItem>
                   {templates.map(template => (
                     <SelectItem key={template.id} value={template.id.toString()}>
                       {template.nombre}

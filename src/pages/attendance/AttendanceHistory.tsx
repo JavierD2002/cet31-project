@@ -30,9 +30,9 @@ import { getAttendanceHistory, getTeachers, getSubjects } from '@/services/supab
 
 const AttendanceHistory = () => {
   const [filtros, setFiltros] = useState({
-    curso: '',
-    profesor_id: '',
-    asignatura_id: '',
+    curso: 'all',
+    profesor_id: 'all',
+    asignatura_id: 'all',
     fecha_desde: '',
     fecha_hasta: ''
   });
@@ -40,9 +40,9 @@ const AttendanceHistory = () => {
   const { data: historial, isLoading } = useQuery({
     queryKey: ['attendanceHistory', filtros],
     queryFn: () => getAttendanceHistory({
-      curso: filtros.curso || undefined,
-      profesor_id: filtros.profesor_id ? parseInt(filtros.profesor_id) : undefined,
-      asignatura_id: filtros.asignatura_id ? parseInt(filtros.asignatura_id) : undefined,
+      curso: filtros.curso && filtros.curso !== 'all' ? filtros.curso : undefined,
+      profesor_id: filtros.profesor_id && filtros.profesor_id !== 'all' ? parseInt(filtros.profesor_id) : undefined,
+      asignatura_id: filtros.asignatura_id && filtros.asignatura_id !== 'all' ? parseInt(filtros.asignatura_id) : undefined,
       fecha_desde: filtros.fecha_desde || undefined,
       fecha_hasta: filtros.fecha_hasta || undefined
     })
@@ -97,7 +97,7 @@ const AttendanceHistory = () => {
                     <SelectValue placeholder="Todos los cursos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los cursos</SelectItem>
+                    <SelectItem value="all">Todos los cursos</SelectItem>
                     {cursos.map(curso => (
                       <SelectItem key={curso} value={curso}>{curso}</SelectItem>
                     ))}
@@ -112,7 +112,7 @@ const AttendanceHistory = () => {
                     <SelectValue placeholder="Todos los docentes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los docentes</SelectItem>
+                    <SelectItem value="all">Todos los docentes</SelectItem>
                     {docentes?.map(docente => (
                       <SelectItem key={docente.id} value={docente.id.toString()}>
                         {docente.nombre}
@@ -129,7 +129,7 @@ const AttendanceHistory = () => {
                     <SelectValue placeholder="Todas las asignaturas" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las asignaturas</SelectItem>
+                    <SelectItem value="all">Todas las asignaturas</SelectItem>
                     {asignaturas?.map(asignatura => (
                       <SelectItem key={asignatura.id} value={asignatura.id.toString()}>
                         {asignatura.nombre}
@@ -159,7 +159,7 @@ const AttendanceHistory = () => {
             </div>
 
             <div className="mt-4 flex gap-2">
-              <Button onClick={() => setFiltros({ curso: '', profesor_id: '', asignatura_id: '', fecha_desde: '', fecha_hasta: '' })}>
+              <Button onClick={() => setFiltros({ curso: 'all', profesor_id: 'all', asignatura_id: 'all', fecha_desde: '', fecha_hasta: '' })}>
                 Limpiar Filtros
               </Button>
               <Button variant="outline">

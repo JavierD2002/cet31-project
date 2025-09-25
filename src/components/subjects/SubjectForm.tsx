@@ -135,7 +135,7 @@ const SubjectForm: React.FC<SubjectFormProps> = ({
                 <SelectValue placeholder="Selecciona un docente (opcional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Sin asignar</SelectItem>
+                <SelectItem value="none">Sin asignar</SelectItem>
                 {teachers.map((teacher) => (
                   <SelectItem key={teacher.id} value={teacher.id.toString()}>
                     {teacher.nombre}

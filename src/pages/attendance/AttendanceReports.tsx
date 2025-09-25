@@ -30,8 +30,8 @@ import { getAttendanceReport, getTeachers, getSubjects } from '@/services/supaba
 
 const AttendanceReports = () => {
   const [filtros, setFiltros] = useState({
-    curso: '',
-    asignatura_id: '',
+    curso: 'all',
+    asignatura_id: 'all',
     fecha_desde: '',
     fecha_hasta: ''
   });
@@ -39,8 +39,8 @@ const AttendanceReports = () => {
   const { data: reporteData, isLoading } = useQuery({
     queryKey: ['attendanceReport', filtros],
     queryFn: () => getAttendanceReport({
-      curso: filtros.curso || undefined,
-      asignatura_id: filtros.asignatura_id ? parseInt(filtros.asignatura_id) : undefined,
+      curso: filtros.curso && filtros.curso !== 'all' ? filtros.curso : undefined,
+      asignatura_id: filtros.asignatura_id && filtros.asignatura_id !== 'all' ? parseInt(filtros.asignatura_id) : undefined,
       fecha_desde: filtros.fecha_desde,
       fecha_hasta: filtros.fecha_hasta
     }),
@@ -117,7 +117,7 @@ const AttendanceReports = () => {
                     <SelectValue placeholder="Seleccionar curso" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos los cursos</SelectItem>
+                    <SelectItem value="all">Todos los cursos</SelectItem>
                     {cursos.map(curso => (
                       <SelectItem key={curso} value={curso}>{curso}</SelectItem>
                     ))}
@@ -132,7 +132,7 @@ const AttendanceReports = () => {
                     <SelectValue placeholder="Seleccionar asignatura" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todas las asignaturas</SelectItem>
+                    <SelectItem value="all">Todas las asignaturas</SelectItem>
                     {asignaturas?.map(asignatura => (
                       <SelectItem key={asignatura.id} value={asignatura.id.toString()}>
                         {asignatura.nombre}
@@ -165,7 +165,7 @@ const AttendanceReports = () => {
 
             <div className="mt-4 flex gap-2">
               <Button 
-                onClick={() => setFiltros({ curso: '', asignatura_id: '', fecha_desde: '', fecha_hasta: '' })}
+                onClick={() => setFiltros({ curso: 'all', asignatura_id: 'all', fecha_desde: '', fecha_hasta: '' })}
                 variant="outline"
               >
                 Limpiar
