@@ -15,7 +15,8 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   LogOut, 
-  User
+  User,
+  Home
 } from 'lucide-react';
 import NotificationCenter from './NotificationCenter';
 
@@ -57,6 +58,17 @@ const Header = () => {
         <div className="flex items-center justify-between h-16">
           {/* Título simplificado */}
           <div className="flex items-center space-x-4">
+            <Button 
+              variant="ghost" 
+              asChild
+              className="text-white hover:bg-blue-700"
+            >
+              <Link to="/" className="flex items-center space-x-2">
+                <Home className="h-5 w-5" />
+                <span className="hidden md:inline">Inicio</span>
+              </Link>
+            </Button>
+            <div className="h-8 w-px bg-blue-400 hidden md:block"></div>
             <span className="text-xl font-bold text-white">
               SISTEMA DE GESTIÓN ESCOLAR - CET N° 31
             </span>
