@@ -175,12 +175,26 @@ const Informes = () => {
                   <p className="text-gray-500">Gestión de informes pedagógicos por curso</p>
                 </div>
               </div>
-              <Button asChild variant="outline">
-                <Link to="/" className="flex items-center space-x-2">
-                  <Home className="h-4 w-4" />
-                  <span>Volver al Inicio</span>
-                </Link>
-              </Button>
+              <div className="flex gap-2">
+                <ExportButtons
+                  title="Listado de Informes Pedagógicos"
+                  filename="informes"
+                  columns={[
+                    { header: 'Fecha', accessor: (row: any) => new Date(row.fecha).toLocaleDateString() },
+                    { header: 'Curso', accessor: 'curso' },
+                    { header: 'Asignatura', accessor: 'asignatura' },
+                    { header: 'Docente', accessor: 'docente_nombre' },
+                    { header: 'Estudiantes', accessor: (row: any) => `${row.estudiantes.length} estudiantes` },
+                  ]}
+                  data={filteredInformes}
+                />
+                <Button asChild variant="outline">
+                  <Link to="/" className="flex items-center space-x-2">
+                    <Home className="h-4 w-4" />
+                    <span>Volver al Inicio</span>
+                  </Link>
+                </Button>
+              </div>
             </div>
 
             {/* Estadísticas */}
