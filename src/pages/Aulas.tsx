@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Plus, Edit, Trash2, Search, MapPin, Users, Wifi } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
@@ -179,8 +180,8 @@ const Aulas = () => {
           </CardHeader>
           <CardContent>
             {/* Filtros */}
-            <div className="mb-6">
-              <div className="relative">
+            <div className="mb-6 flex gap-2">
+              <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
                   placeholder="Buscar por nombre, ubicación o recursos..."
@@ -189,6 +190,18 @@ const Aulas = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <ExportButtons
+                title="Listado de Aulas"
+                filename="aulas"
+                columns={[
+                  { header: 'Aula', accessor: 'nombre' },
+                  { header: 'Ubicación', accessor: 'ubicacion' },
+                  { header: 'Capacidad', accessor: (row: any) => `${row.capacidad} estudiantes` },
+                  { header: 'Estado', accessor: (row: any) => row.activa ? 'Activa' : 'Inactiva' },
+                  { header: 'Recursos', accessor: (row: any) => row.recursos || 'Sin recursos' },
+                ]}
+                data={filteredClassrooms}
+              />
             </div>
 
             <div className="border rounded-md overflow-hidden">

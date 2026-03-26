@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Search, Eye, User, FileText, Book, Edit, Trash2 } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import {
   Table,
   TableBody,
@@ -174,7 +175,7 @@ const Docentes = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="flex mb-6">
+            <div className="flex mb-6 gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                 <Input
@@ -184,6 +185,16 @@ const Docentes = () => {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
+              <ExportButtons
+                title="Listado de Docentes"
+                filename="docentes"
+                columns={[
+                  { header: 'DNI', accessor: 'dni' },
+                  { header: 'Nombre', accessor: 'nombre' },
+                  { header: 'Especialidad', accessor: 'especialidad' },
+                ]}
+                data={filteredTeachers}
+              />
             </div>
 
             <div className="border rounded-md overflow-hidden">

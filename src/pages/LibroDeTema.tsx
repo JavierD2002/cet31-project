@@ -14,6 +14,7 @@ import {
   Clock,
   ArrowLeftIcon
 } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import {
   Card,
   CardContent,
@@ -236,6 +237,19 @@ const LibroDeTema = () => {
           </div>
           
           <div className="flex gap-2">
+            <ExportButtons
+              title="Libro de Tema"
+              filename="libro_de_tema"
+              columns={[
+                { header: 'Fecha', accessor: (row: any) => new Date(row.fecha).toLocaleDateString() },
+                { header: 'Curso', accessor: 'curso' },
+                { header: 'Asignatura', accessor: (row: any) => row.asignatura_nombre || 'Sin asignatura' },
+                { header: 'Tema', accessor: 'tema' },
+                { header: 'Estado', accessor: 'estado' },
+                { header: 'Docente', accessor: (row: any) => row.docente_nombre || 'Sin asignar' },
+              ]}
+              data={temasFiltrados}
+            />
             <Button variant="outline">
               <FileTextIcon className="mr-2 h-4 w-4" />
               Planificación

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { ChevronLeft, GraduationCap, Save, Filter, Calculator, FileText } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
@@ -206,10 +207,26 @@ const Calificaciones = () => {
       <main className="container mx-auto py-8 px-4">
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold">Gestión de Calificaciones</h2>
-          <Link to="/calificaciones/boletines" className="text-blue-600 hover:underline text-sm">
-            <FileText className="h-4 w-4 inline mr-1" />
-            Generar Boletines →
-          </Link>
+          <div className="flex gap-2">
+            {studentGrades.length > 0 && (
+              <ExportButtons
+                title="Calificaciones"
+                filename="calificaciones"
+                columns={[
+                  { header: 'Alumno', accessor: 'estudiante_nombre' },
+                  { header: '1° Trimestre', accessor: (row: any) => row.primer_trimestre?.toString() || '-' },
+                  { header: '2° Trimestre', accessor: (row: any) => row.segundo_trimestre?.toString() || '-' },
+                  { header: '3° Trimestre', accessor: (row: any) => row.tercer_trimestre?.toString() || '-' },
+                  { header: 'Promedio', accessor: (row: any) => row.promedio?.toFixed(1) || '-' },
+                ]}
+                data={studentGrades}
+              />
+            )}
+            <Link to="/calificaciones/boletines" className="text-blue-600 hover:underline text-sm">
+              <FileText className="h-4 w-4 inline mr-1" />
+              Generar Boletines →
+            </Link>
+          </div>
         </div>
         
         <Card className="mb-6">

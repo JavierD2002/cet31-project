@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, Plus, Edit, Trash2, Search, Filter, BookOpen, User, Clock } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
@@ -241,6 +242,18 @@ const Asignaturas = () => {
                     </SelectContent>
                   </Select>
                 </div>
+                <ExportButtons
+                  title="Listado de Asignaturas"
+                  filename="asignaturas"
+                  columns={[
+                    { header: 'Asignatura', accessor: 'nombre' },
+                    { header: 'Curso', accessor: 'curso' },
+                    { header: 'Docente', accessor: (row: any) => row.docente_nombre || 'Sin asignar' },
+                    { header: 'Carga Horaria', accessor: (row: any) => `${row.carga_horaria}h/semana` },
+                    { header: 'Descripción', accessor: (row: any) => row.descripcion || '-' },
+                  ]}
+                  data={filteredSubjects}
+                />
               </div>
             </div>
 

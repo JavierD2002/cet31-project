@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, UserPlus } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import {
   Table,
   TableBody,
@@ -120,12 +121,26 @@ const UserManagement = () => {
                 <CardTitle>Gestión de Usuarios</CardTitle>
                 <CardDescription>Administre todos los usuarios del sistema</CardDescription>
               </div>
-              <Link to="/admin/usuarios/nuevo">
-                <Button className="bg-blue-600 hover:bg-blue-700">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Nuevo Usuario
-                </Button>
-              </Link>
+              <div className="flex gap-2">
+                <ExportButtons
+                  title="Listado de Usuarios"
+                  filename="usuarios"
+                  columns={[
+                    { header: 'ID', accessor: (row: any) => row.id.toString() },
+                    { header: 'DNI', accessor: 'dni' },
+                    { header: 'Nombre', accessor: (row: any) => `${row.nombre} ${row.apellido}` },
+                    { header: 'Email', accessor: 'email' },
+                    { header: 'Rol', accessor: 'rol' },
+                  ]}
+                  data={filteredUsers}
+                />
+                <Link to="/admin/usuarios/nuevo">
+                  <Button className="bg-blue-600 hover:bg-blue-700">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Nuevo Usuario
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
