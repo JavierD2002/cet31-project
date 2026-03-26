@@ -14,6 +14,7 @@ import {
   Clock,
   ArrowLeftIcon
 } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import {
   Card,
   CardContent,

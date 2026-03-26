@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft, UserPlus } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import {
   Table,
   TableBody,

@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { ChevronLeft, GraduationCap, Save, Filter, Calculator, FileText } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   Table,
