@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { CalendarIcon, FilterIcon, SearchIcon, DownloadIcon, ArrowLeft } from 'lucide-react';
+import ExportButtons from '@/components/ExportButtons';
 import { Link } from 'react-router-dom';
 import {
   Card,
@@ -180,6 +181,21 @@ const AttendanceHistory = () => {
                 <DownloadIcon className="mr-2 h-4 w-4" />
                 Exportar
               </Button>
+              <ExportButtons
+                title="Historial de Asistencia"
+                filename="historial_asistencia"
+                columns={[
+                  { header: 'Fecha', accessor: (row: any) => new Date(row.fecha).toLocaleDateString() },
+                  { header: 'Curso', accessor: 'curso' },
+                  { header: 'Asignatura', accessor: 'asignatura' },
+                  { header: 'Docente', accessor: 'docente' },
+                  { header: 'Presentes', accessor: (row: any) => row.presentes?.toString() || '0' },
+                  { header: 'Ausentes', accessor: (row: any) => row.ausentes?.toString() || '0' },
+                  { header: 'Tardanzas', accessor: (row: any) => row.tardanzas?.toString() || '0' },
+                  { header: 'Total', accessor: (row: any) => row.total?.toString() || '0' },
+                ]}
+                data={historial || []}
+              />
             </div>
           </CardContent>
         </Card>
