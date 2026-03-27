@@ -214,6 +214,30 @@ export type Database = {
           },
         ]
       }
+      configuracion_escuela: {
+        Row: {
+          email_contacto: string
+          id: number
+          nombre_escuela: string
+          texto_copyright: string
+          updated_at: string | null
+        }
+        Insert: {
+          email_contacto?: string
+          id?: number
+          nombre_escuela?: string
+          texto_copyright?: string
+          updated_at?: string | null
+        }
+        Update: {
+          email_contacto?: string
+          id?: number
+          nombre_escuela?: string
+          texto_copyright?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       docentes: {
         Row: {
           created_at: string | null
