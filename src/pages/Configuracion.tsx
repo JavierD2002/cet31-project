@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/context/AuthContext';
+import { useSchoolConfig, SchoolConfig } from '@/hooks/useSchoolConfig';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -25,7 +26,8 @@ import {
   Globe,
   Save,
   RotateCcw,
-  Home
+  Home,
+  Building2
 } from 'lucide-react';
 
 const Configuracion = () => {
@@ -161,7 +163,7 @@ const Configuracion = () => {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <School className="h-4 w-4" />
               General
@@ -177,6 +179,10 @@ const Configuracion = () => {
             <TabsTrigger value="security" className="flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Seguridad
+            </TabsTrigger>
+            <TabsTrigger value="footer" className="flex items-center gap-2">
+              <Building2 className="h-4 w-4" />
+              Pie de Página
             </TabsTrigger>
           </TabsList>
 
@@ -592,11 +598,111 @@ const Configuracion = () => {
               </CardContent>
             </Card>
           </TabsContent>
+          {/* Datos del Pie de Página */}
+          <TabsContent value="footer">
+            <FooterConfigTab />
+          </TabsContent>
         </Tabs>
       </main>
 
       <Footer />
     </div>
+  );
+};
+
+const FooterConfigTab = () => {
+  const { config, loading, updateConfig } = useSchoolConfig();
+  const { toast } = useToast();
+  const [form, setForm] = useState<SchoolConfig>({
+    nombre_escuela: '',
+    email_contacto: '',
+    texto_copyright: '',
+  });
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!loading) {
+      setForm(config);
+    }
+  }, [loading, config]);
+
+  const handleSaveFooter = async () => {
+    setSaving(true);
+    try {
+      await updateConfig(form);
+      toast({
+        title: "Datos del pie de página guardados",
+        description: "La información se actualizó correctamente en todas las páginas.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "No se pudieron guardar los cambios.",
+        variant: "destructive",
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <p>Cargando...</p>;
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Building2 className="h-5 w-5" />
+          Datos del Pie de Página
+        </CardTitle>
+        <CardDescription>
+          Edita la información del colegio que aparece en el pie de todas las páginas del sistema
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-2">
+          <Label htmlFor="nombre_escuela">Nombre de la Escuela / Ubicación</Label>
+          <Input
+            id="nombre_escuela"
+            value={form.nombre_escuela}
+            onChange={(e) => setForm({ ...form, nombre_escuela: e.target.value })}
+            placeholder="Ej: Escuela Técnica de Villa Manzano - Río Negro - Argentina"
+          />
+          <p className="text-sm text-muted-foreground">Se muestra como primera línea del pie de página</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="email_contacto">Email de Contacto</Label>
+          <Input
+            id="email_contacto"
+            type="email"
+            value={form.email_contacto}
+            onChange={(e) => setForm({ ...form, email_contacto: e.target.value })}
+            placeholder="Ej: cet31vmanzano23@gmail.com"
+          />
+          <p className="text-sm text-muted-foreground">Se muestra como enlace de contacto</p>
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="texto_copyright">Texto de Copyright</Label>
+          <Input
+            id="texto_copyright"
+            value={form.texto_copyright}
+            onChange={(e) => setForm({ ...form, texto_copyright: e.target.value })}
+            placeholder="Ej: © 2025 Sistema de Gestión Escolar"
+          />
+          <p className="text-sm text-muted-foreground">Se muestra como última línea del pie de página</p>
+        </div>
+
+        <Separator />
+
+        <div className="flex justify-end">
+          <Button onClick={handleSaveFooter} disabled={saving}>
+            <Save className="h-4 w-4 mr-2" />
+            {saving ? 'Guardando...' : 'Guardar Cambios'}
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
