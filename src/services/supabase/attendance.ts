@@ -1,5 +1,7 @@
 
-import { supabase, isSupabaseConfigured } from './client';
+import { supabase } from '@/integrations/supabase/client';
+
+const isSupabaseConfigured = true;
 
 // Mock functions for when Supabase isn't configured
 const mockSaveAttendance = async (...args: any[]) => {
@@ -14,7 +16,7 @@ const mockGetAttendanceHistory = async () => {
 
 const mockGetAttendanceDetails = async () => {
   console.warn('Supabase not configured: getAttendanceDetails called with mock implementation')
-  return { asistencias_detalle: [] }
+  return { asistencias_detalle: [], fecha: '', curso: '', asignatura_id: 0 }
 }
 
 const mockGetStudentAttendanceStats = async () => {
@@ -166,7 +168,7 @@ export const getAttendanceReport = isSupabaseConfigured
       fecha_desde: string
       fecha_hasta: string
     }) => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('asistencias_detalle')
         .select(`
           *,
@@ -177,9 +179,15 @@ export const getAttendanceReport = isSupabaseConfigured
         `)
         .gte('asistencias.fecha', filters.fecha_desde)
         .lte('asistencias.fecha', filters.fecha_hasta)
-        .eq(filters.curso ? 'asistencias.curso' : '', filters.curso || '')
-        .eq(filters.asignatura_id ? 'asistencias.asignatura_id' : '', filters.asignatura_id || '')
-        .order('asistencias.fecha', { ascending: false })
+
+      if (filters.curso) {
+        query = query.eq('asistencias.curso', filters.curso)
+      }
+      if (filters.asignatura_id) {
+        query = query.eq('asistencias.asignatura_id', filters.asignatura_id)
+      }
+
+      const { data, error } = await query.order('asistencias.fecha', { ascending: false })
 
       if (error) throw error
       return data
