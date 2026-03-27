@@ -179,8 +179,15 @@ export const getAttendanceReport = isSupabaseConfigured
         `)
         .gte('asistencias.fecha', filters.fecha_desde)
         .lte('asistencias.fecha', filters.fecha_hasta)
-        .eq(filters.curso ? 'asistencias.curso' : '', filters.curso || '')
-        .eq(filters.asignatura_id ? 'asistencias.asignatura_id' : '', filters.asignatura_id || '')
+
+      if (filters.curso) {
+        query = query.eq('asistencias.curso', filters.curso)
+      }
+      if (filters.asignatura_id) {
+        query = query.eq('asistencias.asignatura_id', filters.asignatura_id)
+      }
+
+      query = query
         .order('asistencias.fecha', { ascending: false })
 
       if (error) throw error
