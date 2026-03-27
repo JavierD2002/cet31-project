@@ -16,7 +16,7 @@ const mockGetAttendanceHistory = async () => {
 
 const mockGetAttendanceDetails = async () => {
   console.warn('Supabase not configured: getAttendanceDetails called with mock implementation')
-  return { asistencias_detalle: [] }
+  return { asistencias_detalle: [], fecha: '', curso: '', asignatura_id: 0 }
 }
 
 const mockGetStudentAttendanceStats = async () => {
