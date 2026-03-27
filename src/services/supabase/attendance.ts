@@ -168,7 +168,7 @@ export const getAttendanceReport = isSupabaseConfigured
       fecha_desde: string
       fecha_hasta: string
     }) => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('asistencias_detalle')
         .select(`
           *,
@@ -187,8 +187,7 @@ export const getAttendanceReport = isSupabaseConfigured
         query = query.eq('asistencias.asignatura_id', filters.asignatura_id)
       }
 
-      query = query
-        .order('asistencias.fecha', { ascending: false })
+      const { data, error } = await query.order('asistencias.fecha', { ascending: false })
 
       if (error) throw error
       return data
