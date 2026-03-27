@@ -1,5 +1,7 @@
 
-import { supabase, isSupabaseConfigured } from './client';
+import { supabase } from '@/integrations/supabase/client';
+
+const isSupabaseConfigured = true;
 
 // Mock functions for when Supabase isn't configured
 const mockSaveAttendance = async (...args: any[]) => {
