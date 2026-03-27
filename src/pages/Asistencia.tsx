@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ChevronLeft } from 'lucide-react';
 import Header from '@/components/Header';
@@ -7,34 +7,84 @@ import Footer from '@/components/Footer';
 import AttendanceHeader from '@/components/attendance/AttendanceHeader';
 import AttendanceContent from '@/components/attendance/AttendanceContent';
 import { useAttendance } from '@/hooks/useAttendance';
-
-const mockTeachers = [
-  { id: 1, nombre: "Prof. Martínez" },
-  { id: 2, nombre: "Prof. García" },
-  { id: 3, nombre: "Prof. López" }
-];
-
-const mockAsignaturas = [
-  { id: 1, nombre: "Matemáticas", profesorId: 1, cursos: ["1° Año A", "2° Año A"] },
-  { id: 2, nombre: "Física", profesorId: 1, cursos: ["3° Año A"] },
-  { id: 3, nombre: "Química", profesorId: 2, cursos: ["2° Año A", "3° Año B"] },
-  { id: 4, nombre: "Literatura", profesorId: 3, cursos: ["1° Año A", "1° Año B"] }
-];
-
-const mockStudents = [
-  { id: 1, nombre: "Acosta, María", curso: "1° Año A" },
-  { id: 2, nombre: "Benítez, Carlos", curso: "1° Año A" },
-  { id: 3, nombre: "Córdoba, Lucía", curso: "1° Año A" },
-  { id: 4, nombre: "Díaz, Mateo", curso: "1° Año A" },
-  { id: 5, nombre: "Espinoza, Valentina", curso: "1° Año A" },
-  { id: 6, nombre: "Fernández, Santiago", curso: "2° Año A" },
-  { id: 7, nombre: "González, Camila", curso: "2° Año A" },
-  { id: 8, nombre: "Hernández, Benjamín", curso: "3° Año A" },
-  { id: 9, nombre: "Ibáñez, Sofía", curso: "3° Año A" },
-  { id: 10, nombre: "Juárez, Nicolás", curso: "3° Año B" },
-];
+import { supabase } from '@/integrations/supabase/client';
+import { Teacher, Subject, Student } from '@/types/attendance';
 
 const Asistencia = () => {
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch docentes with their usuario data
+        const { data: docentesData } = await supabase
+          .from('docentes')
+          .select('id, usuario_id, usuarios!docentes_usuario_id_fkey(id, nombre, apellido)');
+
+        // Fetch asignaturas with docente_id
+        const { data: asignaturasData } = await supabase
+          .from('asignaturas')
+          .select('id, nombre, curso, docente_id');
+
+        // Fetch estudiantes with usuario data
+        const { data: estudiantesData } = await supabase
+          .from('estudiantes')
+          .select('id, curso, usuario_id, usuarios!estudiantes_usuario_id_fkey(nombre, apellido)');
+
+        // Map docentes: use usuario_id as the teacher id (since asistencias.profesor_id references usuarios.id)
+        const teachersList: Teacher[] = (docentesData || []).map((d: any) => ({
+          id: d.usuario_id,
+          nombre: `Prof. ${d.usuarios?.apellido || ''}, ${d.usuarios?.nombre || ''}`,
+        }));
+
+        // Map asignaturas: group courses by subject+docente, using usuario_id for profesorId
+        // First, build a map from docente.id -> usuario_id
+        const docenteToUsuario: Record<number, number> = {};
+        (docentesData || []).forEach((d: any) => {
+          docenteToUsuario[d.id] = d.usuario_id;
+        });
+
+        // Group asignaturas by nombre+docente_id to collect all cursos
+        const subjectMap = new Map<string, Subject>();
+        (asignaturasData || []).forEach((a: any) => {
+          const usuarioId = a.docente_id ? docenteToUsuario[a.docente_id] : null;
+          const key = `${a.nombre}-${usuarioId}`;
+          if (subjectMap.has(key)) {
+            subjectMap.get(key)!.cursos.push(a.curso);
+          } else {
+            subjectMap.set(key, {
+              id: a.id,
+              nombre: a.nombre,
+              profesorId: usuarioId || 0,
+              cursos: [a.curso],
+            });
+          }
+        });
+        const subjectsList = Array.from(subjectMap.values());
+
+        // Map estudiantes
+        const studentsList: Student[] = (estudiantesData || []).map((e: any) => ({
+          id: e.usuario_id,
+          nombre: `${e.usuarios?.apellido || ''}, ${e.usuarios?.nombre || ''}`,
+          curso: e.curso,
+        }));
+
+        setTeachers(teachersList);
+        setSubjects(subjectsList);
+        setStudents(studentsList);
+      } catch (error) {
+        console.error('Error fetching attendance data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
   const {
     selectedDate,
     selectedTeacher,
@@ -55,7 +105,19 @@ const Asistencia = () => {
     setSelectedSubject,
     setSelectedCourse,
     saveAttendanceData
-  } = useAttendance(mockTeachers, mockAsignaturas, mockStudents);
+  } = useAttendance(teachers, subjects, students);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50">
+        <Header />
+        <main className="container mx-auto py-8 px-4">
+          <p>Cargando datos...</p>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -74,7 +136,7 @@ const Asistencia = () => {
         <AttendanceHeader />
         
         <AttendanceContent 
-          teachers={mockTeachers}
+          teachers={teachers}
           teacherSubjects={teacherSubjects}
           subjectCourses={subjectCourses}
           filteredStudents={filteredStudents}
