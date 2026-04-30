@@ -229,13 +229,13 @@ const Docentes = () => {
                               </Link>
                             </Button>
                             <Button variant="ghost" size="sm" asChild>
-                              <Link to={`/docentes/${teacher.id}/asignaturas`}>
+                              <Link to={`/docentes/${teacher.id}/perfil?tab=asignaturas`}>
                                 <Book className="h-4 w-4 mr-1" />
                                 Asignaturas
                               </Link>
                             </Button>
                             <Button variant="ghost" size="sm" asChild>
-                              <Link to={`/docentes/${teacher.id}/informes`}>
+                              <Link to={`/docentes/${teacher.id}/perfil?tab=informes`}>
                                 <FileText className="h-4 w-4 mr-1" />
                                 Informes
                               </Link>

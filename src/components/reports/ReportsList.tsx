@@ -27,15 +27,6 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 
-const mockAsignaturas = [
-  { id: 1, nombre: "Matemática" },
-  { id: 2, nombre: "Lengua" },
-  { id: 3, nombre: "Historia" },
-  { id: 4, nombre: "Geografía" }
-];
-
-const mockCursos = ["1° Año A", "1° Año B", "2° Año A", "2° Año B"];
-
 interface ReportsListProps {
   filteredInformes: any[];
   searchTerm: string;
@@ -48,6 +39,9 @@ interface ReportsListProps {
   onGeneratePDF: (informe: any) => void;
   hasRole: (roles: string | string[]) => boolean;
   user: any;
+  cursos?: string[];
+  asignaturas?: { id: number; nombre: string }[];
+  loading?: boolean;
 }
 
 const ReportsList = ({
@@ -61,7 +55,10 @@ const ReportsList = ({
   onViewReport,
   onGeneratePDF,
   hasRole,
-  user
+  user,
+  cursos = [],
+  asignaturas = [],
+  loading = false,
 }: ReportsListProps) => {
   return (
     <Card className="mb-6">
@@ -88,7 +85,7 @@ const ReportsList = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todos">Todos los cursos</SelectItem>
-              {mockCursos.map(curso => (
+              {cursos.map(curso => (
                 <SelectItem key={curso} value={curso}>{curso}</SelectItem>
               ))}
             </SelectContent>
@@ -99,7 +96,7 @@ const ReportsList = ({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="todas">Todas las asignaturas</SelectItem>
-              {mockAsignaturas.map(asig => (
+              {asignaturas.map(asig => (
                 <SelectItem key={asig.id} value={asig.nombre}>{asig.nombre}</SelectItem>
               ))}
             </SelectContent>
