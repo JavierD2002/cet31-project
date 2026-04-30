@@ -21,13 +21,13 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/components/ui/use-toast";
 import { UserRole } from '@/types/supabase';
 import { useAuth } from '@/context/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import UserTable from './UserTable';
 import UserFilters from './UserFilters';
 import DeleteUserDialog from './DeleteUserDialog';
 
-// Tipo para los usuarios
 type UserData = {
   id: number;
   dni: string;
@@ -36,17 +36,6 @@ type UserData = {
   email: string;
   rol: UserRole;
 };
-
-// Datos ficticios para simular usuarios
-const mockUsers: UserData[] = [
-  { id: 1, dni: '12345678', nombre: 'Administrador', apellido: 'Sistema', email: 'admin@escuela.edu', rol: 'administrador' },
-  { id: 2, dni: '23456789', nombre: 'Ricardo', apellido: 'Gómez', email: 'ricardo.gomez@escuela.edu', rol: 'directivo' },
-  { id: 3, dni: '34567890', nombre: 'Carlos', apellido: 'Pérez', email: 'carlos.perez@escuela.edu', rol: 'docente' },
-  { id: 4, dni: '45678901', nombre: 'Ana', apellido: 'Rodríguez', email: 'ana.rodriguez@escuela.edu', rol: 'docente' },
-  { id: 5, dni: '56789012', nombre: 'María', apellido: 'López', email: 'maria.lopez@escuela.edu', rol: 'docente' },
-  { id: 6, dni: '67890123', nombre: 'Juan', apellido: 'Martínez', email: 'juan.martinez@escuela.edu', rol: 'estudiante' },
-  { id: 7, dni: '78901234', nombre: 'Laura', apellido: 'García', email: 'laura.garcia@escuela.edu', rol: 'estudiante' },
-];
 
 const UserManagement = () => {
   const [users, setUsers] = useState<UserData[]>([]);
@@ -59,41 +48,72 @@ const UserManagement = () => {
   const { toast } = useToast();
   const { hasRole } = useAuth();
 
-  useEffect(() => {
-    // Simular carga de datos desde la API
-    setTimeout(() => {
-      setUsers(mockUsers);
-      setFilteredUsers(mockUsers);
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('usuarios')
+        .select('id, dni, nombre, apellido, email, rol')
+        .order('id', { ascending: true });
+
+      if (error) throw error;
+      const list = (data || []) as UserData[];
+      setUsers(list);
+      setFilteredUsers(list);
+    } catch (error) {
+      console.error('Error al cargar usuarios:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudieron cargar los usuarios desde la base de datos',
+        variant: 'destructive',
+      });
+    } finally {
       setLoading(false);
-    }, 800);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
 
   useEffect(() => {
-    // Filtrar usuarios según término de búsqueda y rol
     const result = users.filter(user => {
-      const matchSearch = 
+      const matchSearch =
         user.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.apellido.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.dni.includes(searchTerm);
-        
+
       const matchRole = roleFilter ? user.rol === roleFilter : true;
-      
       return matchSearch && matchRole;
     });
-    
     setFilteredUsers(result);
   }, [searchTerm, roleFilter, users]);
 
-  const handleDeleteUser = (userId: number) => {
-    // En un sistema real, aquí se eliminaría el usuario de la base de datos
-    setUsers(users.filter(user => user.id !== userId));
-    toast({
-      title: "Usuario eliminado",
-      description: "El usuario ha sido eliminado correctamente",
-    });
-    setDeleteDialogOpen(false);
-    setUserToDelete(null);
+  const handleDeleteUser = async (userId: number) => {
+    try {
+      // Eliminar registros dependientes (estudiantes/docentes) antes del usuario
+      await supabase.from('estudiantes').delete().eq('usuario_id', userId);
+      await supabase.from('docentes').delete().eq('usuario_id', userId);
+
+      const { error } = await supabase.from('usuarios').delete().eq('id', userId);
+      if (error) throw error;
+
+      toast({
+        title: 'Usuario eliminado',
+        description: 'El usuario ha sido eliminado correctamente de la base de datos',
+      });
+      setDeleteDialogOpen(false);
+      setUserToDelete(null);
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error al eliminar usuario:', error);
+      toast({
+        title: 'Error',
+        description: 'No se pudo eliminar el usuario',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleOpenDeleteDialog = (user: UserData) => {
@@ -144,7 +164,7 @@ const UserManagement = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <UserFilters 
+            <UserFilters
               searchTerm={searchTerm}
               roleFilter={roleFilter}
               onSearchChange={setSearchTerm}
@@ -164,16 +184,15 @@ const UserManagement = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <UserTable 
-                    users={filteredUsers} 
+                  <UserTable
+                    users={filteredUsers}
                     loading={loading}
                     onDeleteUser={handleOpenDeleteDialog}
                   />
                 </TableBody>
               </Table>
             </div>
-            
-            {/* Contador de usuarios */}
+
             <div className="mt-4 text-sm text-gray-500">
               Mostrando {filteredUsers.length} de {users.length} usuarios
             </div>
@@ -181,7 +200,7 @@ const UserManagement = () => {
         </Card>
       </main>
 
-      <DeleteUserDialog 
+      <DeleteUserDialog
         user={userToDelete}
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
