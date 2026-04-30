@@ -19,15 +19,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 
-const mockAsignaturas = [
-  { id: 1, nombre: "Matemática" },
-  { id: 2, nombre: "Lengua" },
-  { id: 3, nombre: "Historia" },
-  { id: 4, nombre: "Geografía" }
-];
-
-const mockCursos = ["1° Año A", "1° Año B", "2° Año A", "2° Año B"];
-
 interface ReportCreationFormProps {
   newReport: {
     fecha: string;
@@ -37,9 +28,17 @@ interface ReportCreationFormProps {
   };
   setNewReport: React.Dispatch<React.SetStateAction<any>>;
   onStartNewReport: () => void;
+  asignaturas?: { id: number; nombre: string }[];
+  cursos?: string[];
 }
 
-const ReportCreationForm = ({ newReport, setNewReport, onStartNewReport }: ReportCreationFormProps) => {
+const ReportCreationForm = ({
+  newReport,
+  setNewReport,
+  onStartNewReport,
+  asignaturas = [],
+  cursos = [],
+}: ReportCreationFormProps) => {
   return (
     <Card className="mb-6">
       <CardHeader>
@@ -66,7 +65,7 @@ const ReportCreationForm = ({ newReport, setNewReport, onStartNewReport }: Repor
                 <SelectValue placeholder="Seleccionar asignatura" />
               </SelectTrigger>
               <SelectContent>
-                {mockAsignaturas.map(asig => (
+                {asignaturas.map(asig => (
                   <SelectItem key={asig.id} value={asig.nombre}>{asig.nombre}</SelectItem>
                 ))}
               </SelectContent>
@@ -79,7 +78,7 @@ const ReportCreationForm = ({ newReport, setNewReport, onStartNewReport }: Repor
                 <SelectValue placeholder="Seleccionar curso" />
               </SelectTrigger>
               <SelectContent>
-                {mockCursos.map(curso => (
+                {cursos.map(curso => (
                   <SelectItem key={curso} value={curso}>{curso}</SelectItem>
                 ))}
               </SelectContent>
