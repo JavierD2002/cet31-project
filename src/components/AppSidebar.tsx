@@ -25,7 +25,8 @@ import {
   Building,
   Settings,
   User,
-  BookUser
+  BookUser,
+  Wrench
 } from 'lucide-react';
 
 export function AppSidebar() {
@@ -64,6 +65,10 @@ export function AppSidebar() {
         { to: '/libro-de-tema', label: 'Libro de Tema', icon: BookUser },
         { to: '/informes', label: 'Informes', icon: BarChart3 }
       );
+    }
+
+    if (hasRole(['administrador', 'directivo', 'panolero'])) {
+      items.push({ to: '/panol', label: 'Pañol', icon: Wrench });
     }
 
     return items;

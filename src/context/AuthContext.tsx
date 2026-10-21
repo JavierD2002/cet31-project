@@ -119,6 +119,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         navigate('/docente/dashboard');
       } else if (userData.rol === 'directivo') {
         navigate('/directivo/dashboard');
+      } else if (userData.rol === 'panolero') {
+        navigate('/panol');
       } else if (userData.rol === 'administrador') {
         navigate('/admin/dashboard');
       } else {

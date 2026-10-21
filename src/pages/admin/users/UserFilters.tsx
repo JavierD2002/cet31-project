@@ -33,6 +33,7 @@ const UserFilters: React.FC<UserFiltersProps> = ({
       case 'directivo': return 'Directivo';
       case 'docente': return 'Docente';
       case 'estudiante': return 'Estudiante';
+      case 'panolero': return 'Pañolero';
       default: return "Todos los roles";
     }
   };
@@ -72,6 +73,9 @@ const UserFilters: React.FC<UserFiltersProps> = ({
           </DropdownMenuItem>
           <DropdownMenuItem onClick={() => onRoleFilterChange('estudiante')}>
             Estudiante
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onRoleFilterChange('panolero')}>
+            Pañolero
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
