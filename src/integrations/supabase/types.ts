@@ -432,6 +432,45 @@ export type Database = {
           },
         ]
       }
+      panol_items: {
+        Row: {
+          cantidad: number
+          created_at: string | null
+          detalle: string | null
+          espacio_taller: string
+          estado: string
+          id: number
+          item: string
+          nombre: string
+          unidad_medida: string
+          updated_at: string | null
+        }
+        Insert: {
+          cantidad?: number
+          created_at?: string | null
+          detalle?: string | null
+          espacio_taller?: string
+          estado?: string
+          id?: number
+          item: string
+          nombre: string
+          unidad_medida?: string
+          updated_at?: string | null
+        }
+        Update: {
+          cantidad?: number
+          created_at?: string | null
+          detalle?: string | null
+          espacio_taller?: string
+          estado?: string
+          id?: number
+          item?: string
+          nombre?: string
+          unidad_medida?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       plantillas_informes: {
         Row: {
           activa: boolean
