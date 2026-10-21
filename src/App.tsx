@@ -29,6 +29,7 @@ import DirectivoDashboard from "./pages/directivo/Dashboard";
 import AdminDashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/users/UserManagement";
 import UserForm from "./pages/admin/UserForm";
+import Panol from "./pages/Panol";
 
 const queryClient = new QueryClient();
 
@@ -234,6 +235,7 @@ const App = () => (
               } 
             />
 
+            <Route path="/panol" element={<ProtectedRoute allowedRoles={['administrador', 'directivo', 'panolero']}><Panol /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

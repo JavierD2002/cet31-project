@@ -7,7 +7,7 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[]
 
-export type UserRole = 'estudiante' | 'docente' | 'directivo' | 'administrador';
+export type UserRole = 'estudiante' | 'docente' | 'directivo' | 'administrador' | 'panolero';
 
 export interface Database {
   public: {

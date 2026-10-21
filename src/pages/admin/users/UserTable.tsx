@@ -35,6 +35,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading, onDeleteUser }) =
       case 'directivo': return 'Directivo';
       case 'docente': return 'Docente';
       case 'estudiante': return 'Estudiante';
+      case 'panolero': return 'Pañolero';
       default: return role;
     }
   };
@@ -45,6 +46,7 @@ const UserTable: React.FC<UserTableProps> = ({ users, loading, onDeleteUser }) =
       case 'directivo': return 'bg-purple-100 text-purple-800';
       case 'docente': return 'bg-blue-100 text-blue-800';
       case 'estudiante': return 'bg-green-100 text-green-800';
+      case 'panolero': return 'bg-orange-100 text-orange-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };

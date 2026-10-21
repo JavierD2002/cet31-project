@@ -23,6 +23,7 @@ import { useToast } from "@/components/ui/use-toast";
 import { UserRole } from '@/types/supabase';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import { supabase } from '@/integrations/supabase/client';
 
 type UserFormProps = {
   isEdit?: boolean;
@@ -94,16 +95,24 @@ const UserForm = ({ isEdit = false }: UserFormProps) => {
     setLoading(true);
     
     try {
-      // En un sistema real, aquí enviaríamos los datos al servidor
-      // Por ahora simularemos una respuesta exitosa
-      setTimeout(() => {
-        toast({
-          title: isEdit ? "Usuario actualizado" : "Usuario creado",
-          description: `${formData.nombre} ${formData.apellido} ha sido ${isEdit ? 'actualizado' : 'registrado'} correctamente`,
-        });
-        
-        navigate('/admin/usuarios');
-      }, 1000);
+      const payload = { dni: formData.dni, nombre: formData.nombre, apellido: formData.apellido, email: formData.email, rol: formData.rol };
+      if (isEdit && id) {
+        const { error } = await supabase.from('usuarios').update(payload).eq('id', Number(id));
+        if (error) throw error;
+      } else {
+        const { data, error } = await supabase.from('usuarios').insert(payload).select('id').single();
+        if (error) throw error;
+        if (formData.rol === 'docente') {
+          await supabase.from('docentes').insert({ usuario_id: data.id, especialidad: formData.especialidad });
+        } else if (formData.rol === 'estudiante') {
+          await supabase.from('estudiantes').insert({ usuario_id: data.id, curso: formData.curso });
+        }
+      }
+      toast({
+        title: isEdit ? "Usuario actualizado" : "Usuario creado",
+        description: `${formData.nombre} ${formData.apellido} ha sido ${isEdit ? 'actualizado' : 'registrado'} correctamente`,
+      });
+      navigate('/admin/usuarios');
     } catch (error) {
       console.error("Error al guardar usuario:", error);
       toast({
@@ -158,6 +167,7 @@ const UserForm = ({ isEdit = false }: UserFormProps) => {
                       <SelectItem value="directivo">Directivo</SelectItem>
                       <SelectItem value="docente">Docente</SelectItem>
                       <SelectItem value="estudiante">Estudiante</SelectItem>
+                      <SelectItem value="panolero">Pañolero</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -221,7 +231,7 @@ const UserForm = ({ isEdit = false }: UserFormProps) => {
                 />
               </div>
               
-              {formData.rol === 'docente' && (
+              {(formData.rol === 'docente' || formData.rol === 'panolero') && (
                 <div className="space-y-2">
                   <Label htmlFor="especialidad">Especialidad</Label>
                   <Input
