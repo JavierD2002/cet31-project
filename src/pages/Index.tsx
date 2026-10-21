@@ -78,6 +78,13 @@ const Index = () => {
       description: "Registro de clases",
       link: "/libro-de-tema",
       color: "bg-teal-500"
+    },
+    {
+      title: "Pañol",
+      icon: <Building className="h-6 w-6" />,
+      description: "Inventario de herramientas e insumos",
+      link: "/panol",
+      color: "bg-slate-500"
     }
   ];
 
