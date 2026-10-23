@@ -13,21 +13,7 @@ import { useAuth } from '@/context/AuthContext';
 import { ShieldX, Home, LogOut } from 'lucide-react';
 
 const AccessDenied = () => {
-  const { logout, user } = useAuth();
-
-  // Determinar página de inicio según el rol
-  const getHomepage = () => {
-    if (!user) return '/login';
-    
-    switch (user.rol) {
-      case 'estudiante':
-        return '/estudiante/dashboard';
-      case 'docente':
-        return '/docente/dashboard';
-      default:
-        return '/';
-    }
-  };
+  const { logout, user, isAuthenticated, homePath } = useAuth();
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4">
@@ -43,12 +29,11 @@ const AccessDenied = () => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-center">
-            Su rol actual ({user?.rol}) no tiene los permisos necesarios para ver esta página.
-            Por favor, contacte al administrador si cree que se trata de un error.
+            {isAuthenticated && !user ? 'Tu cuenta está pendiente de autorización. Contactá al administrador del colegio.' : 'No tenés permisos para acceder a esta página.'}
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild variant="default">
-              <Link to={getHomepage()}>
+              <Link to={user ? homePath : "/login"}>
                 <Home className="mr-2 h-4 w-4" />
                 Ir al inicio
               </Link>

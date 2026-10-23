@@ -37,7 +37,7 @@ const Informes = () => {
 
   const [informes, setInformes] = useState<InformeRow[]>([]);
   const [cursos, setCursos] = useState<string[]>([]);
-  const [asignaturas, setAsignaturas] = useState<{ id: number; nombre: string }[]>([]);
+  const [asignaturas, setAsignaturas] = useState<{ id: number; nombre: string; curso: string }[]>([]);
   const [estudiantesDB, setEstudiantesDB] = useState<{ id: number; nombre: string; apellido: string; curso: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -57,9 +57,7 @@ const Informes = () => {
       const { data: asigData } = await supabase
         .from('asignaturas')
         .select('id, nombre, curso');
-      const asigUnique = Array.from(
-        new Map((asigData || []).map(a => [a.nombre, { id: a.id, nombre: a.nombre }])).values()
-      );
+      const asigUnique = asigData || [];
       setAsignaturas(asigUnique);
 
       // Cursos
@@ -204,10 +202,13 @@ const Informes = () => {
     }
 
     try {
+      const subject = asignaturas.find(a => a.nombre === newReport.asignatura && a.curso === newReport.curso);
+      if (!subject || !user) throw new Error('Asignatura no autorizada');
       // Crear un registro en informes_pedagogicos por cada estudiante evaluado
       const rows = newReport.estudiantes.map((est: any) => ({
         estudiante_id: est.id,
-        autor_id: user?.id || null,
+        autor_id: user.id,
+        asignatura_id: subject.id,
         tipo_informe: newReport.asignatura,
         periodo: 'General',
         titulo: `Informe pedagógico - ${newReport.asignatura} - ${newReport.curso}`,
@@ -311,7 +312,7 @@ const Informes = () => {
 
             <ReportsStatistics mockInformes={informes} mockCursos={cursos} />
 
-            {hasRole('docente') && (
+            {hasRole(['docente', 'directivo', 'administrador']) && (
               <ReportCreationForm
                 newReport={newReport}
                 setNewReport={setNewReport}
