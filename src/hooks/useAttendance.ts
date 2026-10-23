@@ -5,9 +5,9 @@ import { AttendanceStatus, Student, Subject, Teacher } from '@/types/attendance'
 import { saveAttendance } from '@/services/supabase';
 
 export const useAttendance = (
-  mockTeachers: Teacher[],
-  mockAsignaturas: Subject[],
-  mockStudents: Student[]
+  teachers: Teacher[],
+  subjects: Subject[],
+  students: Student[]
 ) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTeacher, setSelectedTeacher] = useState<number | null>(null);
@@ -19,15 +19,15 @@ export const useAttendance = (
   const { toast } = useToast();
 
   const teacherSubjects = selectedTeacher 
-    ? mockAsignaturas.filter(asignatura => asignatura.profesorId === selectedTeacher) 
+    ? subjects.filter(asignatura => asignatura.profesorId === selectedTeacher) 
     : [];
   
   const subjectCourses = selectedSubject 
-    ? mockAsignaturas.find(asignatura => asignatura.id === selectedSubject)?.cursos || [] 
+    ? subjects.find(asignatura => asignatura.id === selectedSubject)?.cursos || [] 
     : [];
   
   const filteredStudents = selectedCourse 
-    ? mockStudents.filter(student => student.curso === selectedCourse) 
+    ? students.filter(student => student.curso === selectedCourse) 
     : [];
 
   const formatDate = (date: Date) => {
@@ -96,14 +96,15 @@ export const useAttendance = (
     }
 
     try {
-      const detalles = Object.entries(attendanceData).map(([studentId, data]) => ({
+      const allowedStudents = new Set(filteredStudents.map(student => student.id));
+      const detalles = Object.entries(attendanceData).filter(([studentId]) => allowedStudents.has(Number(studentId))).map(([studentId, data]) => ({
         estudiante_id: Number(studentId),
         estado: data.status,
         observacion: data.observacion,
       }));
 
       await saveAttendance(
-        formatDate(selectedDate),
+        `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`, 
         selectedTeacher,
         selectedSubject,
         selectedCourse,

@@ -42,33 +42,9 @@ export const saveAttendance = isSupabaseConfigured
         observacion?: string
       }[]
     ) => {
-      const { data: asistencia, error: asistenciaError } = await supabase
-        .from('asistencias')
-        .insert({
-          fecha,
-          profesor_id,
-          asignatura_id,
-          curso,
-        })
-        .select()
-        .single()
-
-      if (asistenciaError) throw asistenciaError
-      if (!asistencia) throw new Error('No se pudo crear la asistencia')
-
-      const detallesConId = detalles.map(detalle => ({
-        ...detalle,
-        asistencia_id: asistencia.id,
-        hora_registro: new Date().toISOString(),
-      }))
-
-      const { error: detallesError } = await supabase
-        .from('asistencias_detalle')
-        .insert(detallesConId)
-
-      if (detallesError) throw detallesError
-
-      return asistencia
+      const { data, error } = await supabase.rpc('save_school_attendance', { p_fecha: fecha, p_profesor: profesor_id, p_asignatura: asignatura_id, p_curso: curso, p_detalles: detalles });
+      if (error) throw error;
+      return { id: data };
     }
   : mockSaveAttendance
 

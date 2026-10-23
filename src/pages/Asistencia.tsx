@@ -47,23 +47,10 @@ const Asistencia = () => {
           docenteToUsuario[d.id] = d.usuario_id;
         });
 
-        // Group asignaturas by nombre+docente_id to collect all cursos
-        const subjectMap = new Map<string, Subject>();
-        (asignaturasData || []).forEach((a: any) => {
-          const usuarioId = a.docente_id ? docenteToUsuario[a.docente_id] : null;
-          const key = `${a.nombre}-${usuarioId}`;
-          if (subjectMap.has(key)) {
-            subjectMap.get(key)!.cursos.push(a.curso);
-          } else {
-            subjectMap.set(key, {
-              id: a.id,
-              nombre: a.nombre,
-              profesorId: usuarioId || 0,
-              cursos: [a.curso],
-            });
-          }
-        });
-        const subjectsList = Array.from(subjectMap.values());
+        // Each course retains its own subject ID, which RLS verifies on save.
+        const subjectsList: Subject[] = (asignaturasData || []).map(a => ({
+          id: a.id, nombre: `${a.nombre} · ${a.curso}`, profesorId: a.docente_id ? docenteToUsuario[a.docente_id] || 0 : 0, cursos: [a.curso],
+        }));
 
         // Map estudiantes
         const studentsList: Student[] = (estudiantesData || []).map((e: any) => ({

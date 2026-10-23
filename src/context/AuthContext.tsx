@@ -1,200 +1,90 @@
-
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, getMockUsers } from '@/services/supabase';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { UserRole } from '@/types/supabase';
 import { useToast } from '@/components/ui/use-toast';
 
-type User = {
-  id: number;
-  email: string;
-  nombre: string;
-  apellido: string;
-  rol: UserRole;
-};
-
-type AuthContextType = {
-  user: User | null;
-  loading: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
-  isAuthenticated: boolean;
-  hasRole: (roles: UserRole | UserRole[]) => boolean;
-};
-
+type User = { id: number; authId: string; email: string; nombre: string; apellido: string; rol: UserRole; studentId?: number; teacherId?: number };
+type AuthContextType = { user: User | null; loading: boolean; login: (email: string, password: string) => Promise<void>; logout: () => Promise<void>; isAuthenticated: boolean; hasRole: (roles: UserRole | UserRole[]) => boolean; homePath: string };
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
+const homePaths: Record<UserRole, string> = { administrador: '/admin/dashboard', directivo: '/directivo/dashboard', docente: '/docente/dashboard', estudiante: '/estudiante/dashboard', panolero: '/panol' };
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  console.log('AuthProvider rendering...');
-  
   const [user, setUser] = useState<User | null>(null);
+  const [authenticated, setAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const version = useRef(0);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { toast } = useToast();
-
-  // Verificar sesión al cargar
   useEffect(() => {
-    console.log('AuthProvider useEffect running...');
-    const checkSession = async () => {
+    localStorage.removeItem('sgcet31_user');
+    let alive = true;
+    const hydrate = async () => {
+      const current = ++version.current;
+      setLoading(true);
       try {
-        const storedUser = localStorage.getItem('sgcet31_user');
-        if (storedUser) {
-          console.log('Found stored user:', storedUser);
-          setUser(JSON.parse(storedUser));
-        } else {
-          console.log('No stored user found');
+        const { data, error } = await supabase.auth.getUser();
+        if (error || !data.user) {
+          if (alive && current === version.current) { setUser(null); setAuthenticated(false); }
+          return;
         }
-      } catch (error) {
-        console.error("Error al verificar la sesión:", error);
+        const account = data.user;
+        const [profileResult, roleResult] = await Promise.all([
+          supabase.from('profiles').select('usuario_id,nombre,apellido').eq('id', account.id).maybeSingle(),
+          supabase.from('user_roles').select('role').eq('user_id', account.id).maybeSingle(),
+        ]);
+        if (profileResult.error || roleResult.error) throw profileResult.error || roleResult.error;
+        const profile = profileResult.data;
+        const role = roleResult.data?.role;
+        let resolved: User | null = null;
+        if (profile?.usuario_id && role) {
+          const valid = await supabase.rpc('has_school_role', { wanted: role });
+          if (valid.error) throw valid.error;
+          if (valid.data) {
+            const [student, teacher] = await Promise.all([
+              role === 'estudiante' ? supabase.from('estudiantes').select('id').eq('usuario_id', profile.usuario_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+              role === 'docente' ? supabase.from('docentes').select('id').eq('usuario_id', profile.usuario_id).maybeSingle() : Promise.resolve({ data: null, error: null }),
+            ]);
+            if (student.error || teacher.error) throw student.error || teacher.error;
+            resolved = { id: profile.usuario_id, authId: account.id, email: account.email || '', nombre: profile.nombre, apellido: profile.apellido, rol: role, studentId: student.data?.id, teacherId: teacher.data?.id };
+          }
+        }
+        if (alive && current === version.current) { setUser(resolved); setAuthenticated(true); }
+      } catch {
+        if (alive && current === version.current) { setUser(null); setAuthenticated(false); }
       } finally {
-        setLoading(false);
-        console.log('Auth loading finished');
+        if (alive && current === version.current) setLoading(false);
       }
     };
-
-    checkSession();
-  }, []);
-
-  const login = async (email: string, password: string) => {
-    try {
-      setLoading(true);
-      
-      // Usuario administrador predefinido
-      if (email === "admin" && password === "admin") {
-        const adminUser: User = {
-          id: 0,
-          email: "admin@escuela.edu",
-          nombre: "Administrador",
-          apellido: "Sistema",
-          rol: "administrador"
-        };
-        
-        localStorage.setItem('sgcet31_user', JSON.stringify(adminUser));
-        setUser(adminUser);
-        
-        toast({
-          title: "Inicio de sesión exitoso",
-          description: "Bienvenido, Administrador del Sistema",
-        });
-        
-        navigate('/admin/dashboard');
-        return;
-      }
-      
-      // Continuar con la lógica de autenticación existente para otros usuarios
-      const { data, error } = await supabase
-        .from('usuarios')
-        .select('*')
-        .eq('email', email)
-        .single();
-        
-      if (error || !data) {
-        throw new Error('Credenciales inválidas');
-      }
-      
-      // En producción, verificaríamos la contraseña con supabase
-      // Por ahora, solo simularemos que es correcta
-      
-      const userData: User = {
-        id: data.id,
-        email: data.email,
-        nombre: data.nombre,
-        apellido: data.apellido,
-        rol: data.rol
-      };
-      
-      // Guardar usuario en localStorage para mantener la sesión
-      localStorage.setItem('sgcet31_user', JSON.stringify(userData));
-      setUser(userData);
-      
-      toast({
-        title: "Inicio de sesión exitoso",
-        description: `Bienvenido, ${userData.nombre} ${userData.apellido}`,
-      });
-      
-      // Redirigir según el rol al dashboard específico
-      if (userData.rol === 'estudiante') {
-        navigate('/estudiante/dashboard');
-      } else if (userData.rol === 'docente') {
-        navigate('/docente/dashboard');
-      } else if (userData.rol === 'directivo') {
-        navigate('/directivo/dashboard');
-      } else if (userData.rol === 'panolero') {
-        navigate('/panol');
-      } else if (userData.rol === 'administrador') {
-        navigate('/admin/dashboard');
+    const { data: listener } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        ++version.current;
+        setUser(null); setAuthenticated(false); setLoading(false); queryClient.clear();
       } else {
-        navigate('/');
+        // Defer Auth calls until the listener releases its internal lock.
+        window.setTimeout(() => { if (alive) void hydrate(); }, 0);
       }
-      
-    } catch (error) {
-      console.error("Error en el inicio de sesión:", error);
-      toast({
-        title: "Error de autenticación",
-        description: "Usuario o contraseña incorrectos",
-        variant: "destructive",
-      });
-    } finally {
-      setLoading(false);
-    }
+    });
+    void hydrate();
+    const onFocus = () => void hydrate();
+    window.addEventListener('focus', onFocus);
+    return () => { alive = false; ++version.current; listener.subscription.unsubscribe(); window.removeEventListener('focus', onFocus); };
+  }, [queryClient]);
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    if (error) throw error;
   };
-
   const logout = async () => {
-    try {
-      // En producción: await supabase.auth.signOut();
-      localStorage.removeItem('sgcet31_user');
-      setUser(null);
-      navigate('/login');
-      toast({
-        title: "Sesión cerrada",
-        description: "Has cerrado sesión correctamente",
-      });
-    } catch (error) {
-      console.error("Error al cerrar sesión:", error);
-      toast({
-        title: "Error",
-        description: "No se pudo cerrar la sesión",
-        variant: "destructive",
-      });
-    }
+    const { error } = await supabase.auth.signOut();
+    if (error) { toast({ title: 'No se pudo cerrar la sesión', variant: 'destructive' }); return; }
+    queryClient.clear(); setUser(null); setAuthenticated(false); navigate('/login', { replace: true });
   };
-
-  const hasRole = (roles: UserRole | UserRole[]): boolean => {
-    if (!user) return false;
-    
-    if (Array.isArray(roles)) {
-      return roles.includes(user.rol);
-    }
-    
-    return user.rol === roles;
-  };
-
-  const contextValue = { 
-    user, 
-    loading, 
-    login, 
-    logout, 
-    isAuthenticated: !!user,
-    hasRole 
-  };
-
-  console.log('AuthProvider contextValue:', contextValue);
-
-  return (
-    <AuthContext.Provider value={contextValue}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const hasRole = (roles: UserRole | UserRole[]) => !!user && (Array.isArray(roles) ? roles.includes(user.rol) : roles === user.rol);
+  return <AuthContext.Provider value={{ user, loading, login, logout, isAuthenticated: authenticated, hasRole, homePath: user ? homePaths[user.rol] : '/acceso-denegado' }}>{children}</AuthContext.Provider>;
 };
-
 export const useAuth = () => {
-  console.log('useAuth called...');
   const context = useContext(AuthContext);
-  console.log('useAuth context:', context);
-  
-  if (context === undefined) {
-    console.error('useAuth error: context is undefined');
-    throw new Error('useAuth debe ser usado dentro de un AuthProvider');
-  }
+  if (!context) throw new Error('useAuth debe ser usado dentro de un AuthProvider');
   return context;
 };

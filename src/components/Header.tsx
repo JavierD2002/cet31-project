@@ -21,7 +21,7 @@ import {
 import NotificationCenter from './NotificationCenter';
 
 const Header = () => {
-  const { user, logout, hasRole } = useAuth();
+  const { user, logout, hasRole, homePath } = useAuth();
   const navigate = useNavigate();
 
   const handleLogout = async () => {
@@ -63,7 +63,7 @@ const Header = () => {
               asChild
               className="text-white hover:bg-blue-700"
             >
-              <Link to="/" className="flex items-center space-x-2">
+              <Link to={homePath} className="flex items-center space-x-2">
                 <Home className="h-5 w-5" />
                 <span className="hidden md:inline">Inicio</span>
               </Link>
@@ -111,7 +111,7 @@ const Header = () => {
                 {/* Perfil según el rol */}
                 {hasRole('estudiante') && (
                   <DropdownMenuItem asChild>
-                    <Link to={`/estudiantes/${user.id}/perfil`} className="flex items-center space-x-2">
+                    <Link to={`/estudiantes/${user.studentId}/perfil`} className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
                       <span>Mi Perfil</span>
                     </Link>
@@ -120,7 +120,7 @@ const Header = () => {
                 
                 {hasRole('docente') && (
                   <DropdownMenuItem asChild>
-                    <Link to={`/docentes/${user.id}/perfil`} className="flex items-center space-x-2">
+                    <Link to={`/docentes/${user.teacherId}/perfil`} className="flex items-center space-x-2">
                       <User className="h-4 w-4" />
                       <span>Mi Perfil</span>
                     </Link>

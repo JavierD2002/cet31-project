@@ -39,9 +39,9 @@ const EstudianteDashboard = () => {
 
   // Cargar calificaciones recientes
   const { data: grades } = useQuery({
-    queryKey: ['studentGrades', user?.id],
-    queryFn: () => getStudentGrades(user?.id || 0),
-    enabled: !!user?.id
+    queryKey: ['studentGrades', user?.studentId],
+    queryFn: () => getStudentGrades(user?.studentId || 0),
+    enabled: !!user?.studentId
   });
 
   // Calcular estadísticas
@@ -169,12 +169,12 @@ const EstudianteDashboard = () => {
             </CardHeader>
             <CardContent className="pt-4">
               <p className="text-sm text-gray-600 mb-4">
-                Consulta y actualiza tu información personal y académica
+                Consulta tu información personal y académica
               </p>
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link to={`/estudiantes/${user?.id}/perfil`}>
+                <Link to={`/estudiantes/${user?.studentId}/perfil`}>
                   Ver Mi Perfil
                 </Link>
               </Button>
@@ -198,7 +198,7 @@ const EstudianteDashboard = () => {
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link to={`/estudiantes/${user?.id}/calificaciones`}>
+                <Link to={`/estudiantes/${user?.studentId}/perfil?tab=calificaciones`}>
                   Ver Calificaciones
                 </Link>
               </Button>
@@ -222,7 +222,7 @@ const EstudianteDashboard = () => {
             </CardContent>
             <CardFooter>
               <Button asChild className="w-full">
-                <Link to={`/estudiantes/${user?.id}/asistencia`}>
+                <Link to={`/estudiantes/${user?.studentId}/perfil?tab=asistencia`}>
                   Ver Asistencia
                 </Link>
               </Button>
@@ -248,7 +248,7 @@ const EstudianteDashboard = () => {
                   <div key={index} className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-medium">{grade.asignatura}</span>
+                        <span className="font-medium">{grade.asignaturas?.nombre}</span>
                         <span className={`font-bold ${
                           (grade.nota || 0) >= 7 ? 'text-green-600' : 
                           (grade.nota || 0) >= 6 ? 'text-amber-600' : 'text-red-600'

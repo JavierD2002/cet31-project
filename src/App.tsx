@@ -3,8 +3,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider, useAuth } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Index from "./pages/Index";
 import Login from "./pages/Login";
@@ -30,6 +30,12 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/users/UserManagement";
 import UserForm from "./pages/admin/UserForm";
 import Panol from "./pages/Panol";
+import PasswordRecovery from "./pages/PasswordRecovery";
+
+const Home = () => {
+  const { user, homePath } = useAuth();
+  return user?.rol === "administrador" || user?.rol === "directivo" ? <Index /> : <Navigate to={homePath} replace />;
+};
 
 const queryClient = new QueryClient();
 
@@ -43,6 +49,9 @@ const App = () => (
           <Routes>
             {/* Rutas públicas */}
             <Route path="/login" element={<Login />} />
+            <Route path="/auth/callback" element={<Login />} />
+            <Route path="/olvide-contrasena" element={<PasswordRecovery />} />
+            <Route path="/reset-password" element={<PasswordRecovery reset />} />
             <Route path="/acceso-denegado" element={<AccessDenied />} />
 
             {/* Rutas de estudiante */}
@@ -89,8 +98,8 @@ const App = () => (
             <Route 
               path="/" 
               element={
-                <ProtectedRoute allowedRoles={['administrador', 'directivo']}>
-                  <Index />
+                <ProtectedRoute allowedRoles={['administrador', 'directivo', 'docente', 'estudiante', 'panolero']}>
+                  <Home />
                 </ProtectedRoute>
               } 
             />
@@ -221,7 +230,7 @@ const App = () => (
             <Route 
               path="/estudiantes/:id/perfil" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['administrador', 'directivo', 'docente', 'estudiante']}>
                   <EstudiantePerfil />
                 </ProtectedRoute>
               } 
@@ -229,7 +238,7 @@ const App = () => (
             <Route 
               path="/docentes/:id/perfil" 
               element={
-                <ProtectedRoute>
+                <ProtectedRoute allowedRoles={['administrador', 'directivo', 'docente']}>
                   <DocentePerfil />
                 </ProtectedRoute>
               } 
