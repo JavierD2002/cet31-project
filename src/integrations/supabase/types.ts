@@ -14,6 +14,35 @@ export type Database = {
   }
   public: {
     Tables: {
+      account_assignments: {
+        Row: {
+          active: boolean
+          email: string
+          role: Database["public"]["Enums"]["school_role"]
+          usuario_id: number
+        }
+        Insert: {
+          active?: boolean
+          email: string
+          role: Database["public"]["Enums"]["school_role"]
+          usuario_id: number
+        }
+        Update: {
+          active?: boolean
+          email?: string
+          role?: Database["public"]["Enums"]["school_role"]
+          usuario_id?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "account_assignments_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       asignaturas: {
         Row: {
           carga_horaria: number
@@ -298,6 +327,7 @@ export type Database = {
       }
       informes_pedagogicos: {
         Row: {
+          asignatura_id: number | null
           autor_id: number
           contenido: string
           created_at: string | null
@@ -312,6 +342,7 @@ export type Database = {
           titulo: string
         }
         Insert: {
+          asignatura_id?: number | null
           autor_id: number
           contenido?: string
           created_at?: string | null
@@ -326,6 +357,7 @@ export type Database = {
           titulo: string
         }
         Update: {
+          asignatura_id?: number | null
           autor_id?: number
           contenido?: string
           created_at?: string | null
@@ -340,6 +372,13 @@ export type Database = {
           titulo?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "informes_pedagogicos_asignatura_id_fkey"
+            columns: ["asignatura_id"]
+            isOneToOne: false
+            referencedRelation: "asignaturas"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "informes_pedagogicos_autor_id_fkey"
             columns: ["autor_id"]
@@ -504,12 +543,63 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          apellido: string
+          id: string
+          nombre: string
+          preferencias: Json
+          usuario_id: number | null
+        }
+        Insert: {
+          apellido?: string
+          id: string
+          nombre?: string
+          preferencias?: Json
+          usuario_id?: number | null
+        }
+        Update: {
+          apellido?: string
+          id?: string
+          nombre?: string
+          preferencias?: Json
+          usuario_id?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "profiles_usuario_id_fkey"
+            columns: ["usuario_id"]
+            isOneToOne: true
+            referencedRelation: "usuarios"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["school_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["school_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["school_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
       usuarios: {
         Row: {
           apellido: string
           created_at: string | null
           dni: string
           email: string
+          especialidad: string
           id: number
           nombre: string
           rol: string
@@ -520,6 +610,7 @@ export type Database = {
           created_at?: string | null
           dni: string
           email: string
+          especialidad?: string
           id?: number
           nombre: string
           rol?: string
@@ -530,6 +621,7 @@ export type Database = {
           created_at?: string | null
           dni?: string
           email?: string
+          especialidad?: string
           id?: number
           nombre?: string
           rol?: string
@@ -542,10 +634,62 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      admin_delete_school_user: { Args: { p_id: number }; Returns: undefined }
+      admin_save_school_user: {
+        Args: {
+          p_active?: boolean
+          p_apellido: string
+          p_curso: string
+          p_dni: string
+          p_email: string
+          p_especialidad: string
+          p_id: number
+          p_nombre: string
+          p_role: Database["public"]["Enums"]["school_role"]
+        }
+        Returns: number
+      }
+      attendance_responsibility: {
+        Args: { attendance_id: number; student_user_id: number }
+        Returns: boolean
+      }
+      grade_responsibility: {
+        Args: { student_id: number; subject_id: number }
+        Returns: boolean
+      }
+      has_school_role: {
+        Args: { wanted: Database["public"]["Enums"]["school_role"] }
+        Returns: boolean
+      }
+      own_student: { Args: { student_id: number }; Returns: boolean }
+      save_school_attendance: {
+        Args: {
+          p_asignatura: number
+          p_curso: string
+          p_detalles: Json
+          p_fecha: string
+          p_profesor: number
+        }
+        Returns: number
+      }
+      school_manager: { Args: never; Returns: boolean }
+      school_user_id: { Args: never; Returns: number }
+      student_attendance: { Args: { attendance_id: number }; Returns: boolean }
+      sync_school_account: { Args: { account_id: string }; Returns: undefined }
+      teaches_course: { Args: { wanted: string }; Returns: boolean }
+      teaches_subject: {
+        Args: { course_name: string; subject_id: number }
+        Returns: boolean
+      }
+      visible_school_user: { Args: { wanted: number }; Returns: boolean }
     }
     Enums: {
-      [_ in never]: never
+      school_role:
+        | "administrador"
+        | "directivo"
+        | "docente"
+        | "estudiante"
+        | "panolero"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -672,6 +816,14 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      school_role: [
+        "administrador",
+        "directivo",
+        "docente",
+        "estudiante",
+        "panolero",
+      ],
+    },
   },
 } as const
