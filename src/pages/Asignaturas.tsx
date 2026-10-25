@@ -92,8 +92,12 @@ const Asignaturas = () => {
     },
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => updateSubject(id, data),
+  const updateMutation = useMutation<
+    Awaited<ReturnType<typeof updateSubject>>,
+    Error,
+    { id: number; data: Parameters<typeof updateSubject>[1] }
+  >({
+    mutationFn: ({ id, data }) => updateSubject(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['subjects'] });
       toast({

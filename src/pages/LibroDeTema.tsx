@@ -103,8 +103,12 @@ const LibroDeTema = () => {
     }
   });
 
-  const updateMutation = useMutation({
-    mutationFn: ({ id, data }: { id: number; data: any }) => updateTopic(id, data),
+  const updateMutation = useMutation<
+    Awaited<ReturnType<typeof updateTopic>>,
+    Error,
+    { id: number; data: Parameters<typeof updateTopic>[1] }
+  >({
+    mutationFn: ({ id, data }) => updateTopic(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['topics'] });
       toast({
