@@ -43,6 +43,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { getTopics, getSubjects, getTeachers, createTopic, updateTopic, deleteTopic } from '@/services/supabase';
 import TopicForm from '@/components/topics/TopicForm';
+import { useAuth } from '@/context/AuthContext';
 
 const LibroDeTema = () => {
   const [filtros, setFiltros] = useState({
@@ -56,10 +57,12 @@ const LibroDeTema = () => {
   });
   
   const [modalAbierto, setModalAbierto] = useState(false);
+  const [planningMode, setPlanningMode] = useState(false);
   const [temaEditando, setTemaEditando] = useState<any>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
 
   // Queries
   const { data: temas, isLoading } = useQuery({
@@ -254,13 +257,14 @@ const LibroDeTema = () => {
               ]}
               data={temasFiltrados}
             />
-            <Button variant="outline">
+            {hasRole(['docente', 'directivo', 'administrador']) && <Button variant="outline" onClick={() => { setTemaEditando(null); setPlanningMode(true); setModalAbierto(true); }}>
               <FileTextIcon className="mr-2 h-4 w-4" />
               Planificación
-            </Button>
+            </Button>}
             <Button 
               className="bg-purple-600 hover:bg-purple-700"
               onClick={() => {
+                setPlanningMode(false);
                 setTemaEditando(null);
                 setModalAbierto(true);
               }}
@@ -521,7 +525,8 @@ const LibroDeTema = () => {
         subjects={asignaturas || []}
         teachers={docentes || []}
         initialData={temaEditando}
-        title={temaEditando ? "Editar Tema" : "Nuevo Tema"}
+        planningMode={planningMode && !temaEditando}
+        title={temaEditando ? "Editar Tema" : planningMode ? "Planificación de clase" : "Nuevo Tema"}
       />
     </div>
   );

@@ -21,6 +21,9 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ClipboardList, Loader2, Square } from 'lucide-react';
+import { useAuth } from '@/context/AuthContext';
+import { generateLessonPlan } from '@/services/lessonPlanning';
 
 interface TopicFormData {
   fecha: string;
@@ -46,15 +49,8 @@ interface TopicFormProps {
   teachers: Array<{ id: number; nombre: string }>;
   initialData?: TopicFormData & { id?: number };
   title: string;
+  planningMode?: boolean;
 }
-
-const cursos = [
-  "1° Año A", "1° Año B", "1° Año C",
-  "2° Año A", "2° Año B", "2° Año C",
-  "3° Año A", "3° Año B", "3° Año C",
-  "4° Año A", "4° Año B",
-  "5° Año A", "5° Año B"
-];
 
 const TopicForm: React.FC<TopicFormProps> = ({
   open,
@@ -63,8 +59,16 @@ const TopicForm: React.FC<TopicFormProps> = ({
   subjects,
   teachers,
   initialData,
-  title
+  title,
+  planningMode = false
 }) => {
+  const { user, hasRole } = useAuth();
+  const [generating, setGenerating] = React.useState(false);
+  const [generationError, setGenerationError] = React.useState('');
+  const abortRef = React.useRef<AbortController | null>(null);
+  const canGenerate = hasRole(['docente', 'directivo', 'administrador']);
+  const availableSubjects = subjects.filter(subject => user?.rol !== 'docente' || subject.docente_id === user.teacherId);
+  const cursos = [...new Set(availableSubjects.map(subject => subject.curso))].sort();
   const { register, handleSubmit, reset, setValue, watch, formState: { errors } } = useForm<TopicFormData>({
     defaultValues: initialData || {
       fecha: new Date().toISOString().split('T')[0],
@@ -105,13 +109,42 @@ const TopicForm: React.FC<TopicFormProps> = ({
     }
   }, [initialData, reset]);
 
+  React.useEffect(() => {
+    if (!open) { abortRef.current?.abort(); setGenerationError(''); }
+    return () => { abortRef.current?.abort(); };
+  }, [open]);
+
+  const handleGenerate = async () => {
+    const curso = watch('curso');
+    const asignatura_id = watch('asignatura_id');
+    const tema = watch('tema').trim();
+    if (!tema || !availableSubjects.some(subject => subject.id === asignatura_id && subject.curso === curso)) {
+      setGenerationError('Selecciona el curso, la asignatura y escribe el tema.');
+      return;
+    }
+    if (['contenido', 'actividad', 'recursos', 'evaluacion'].some(field => watch(field as keyof TopicFormData)) && !window.confirm('¿Reemplazar el contenido, las actividades, los recursos y la evaluación actuales?')) return;
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setGenerating(true);
+    setGenerationError('');
+    try {
+      const plan = await generateLessonPlan({ curso, asignatura_id, tema }, controller.signal);
+      if (controller.signal.aborted) return;
+      for (const field of ['contenido', 'actividad', 'recursos', 'evaluacion'] as const) setValue(field, plan[field], { shouldDirty: true, shouldValidate: true });
+      setValue('planificado', true);
+      setValue('estado', 'planificado');
+    } catch (error) {
+      if (!controller.signal.aborted) setGenerationError(error instanceof Error ? error.message : 'No se pudo generar la planificación.');
+    } finally { setGenerating(false); abortRef.current = null; }
+  };
+
   const onFormSubmit = (data: TopicFormData) => {
     onSubmit(data);
     onOpenChange(false);
   };
 
   const cursoSeleccionado = watch('curso');
-  const asignaturasDelCurso = subjects.filter(s => s.curso === cursoSeleccionado);
+  const asignaturasDelCurso = availableSubjects.filter(s => s.curso === cursoSeleccionado);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -139,7 +172,7 @@ const TopicForm: React.FC<TopicFormProps> = ({
 
             <div>
               <Label htmlFor="curso">Curso *</Label>
-              <Select onValueChange={(value) => setValue('curso', value)} value={watch('curso')}>
+              <Select disabled={generating} onValueChange={(value) => { setValue('curso', value); setValue('asignatura_id', 0); setValue('docente_id', 0); }} value={watch('curso')}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecciona un curso" />
                 </SelectTrigger>
@@ -160,6 +193,7 @@ const TopicForm: React.FC<TopicFormProps> = ({
           <div>
             <Label htmlFor="asignatura_id">Asignatura *</Label>
             <Select 
+              disabled={generating}
               onValueChange={(value) => {
                 const asignatura = asignaturasDelCurso.find(a => a.id.toString() === value);
                 setValue('asignatura_id', parseInt(value));
@@ -189,6 +223,7 @@ const TopicForm: React.FC<TopicFormProps> = ({
             <Label htmlFor="tema">Tema de la Clase *</Label>
             <Input
               id="tema"
+              disabled={generating}
               {...register('tema', { required: 'El tema es requerido' })}
               placeholder="Ej: Ecuaciones de segundo grado"
             />
@@ -196,6 +231,19 @@ const TopicForm: React.FC<TopicFormProps> = ({
               <p className="text-sm text-red-600 mt-1">{errors.tema.message}</p>
             )}
           </div>
+
+          {canGenerate && (
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center gap-2">
+                <Button type="button" variant="outline" onClick={handleGenerate} disabled={generating}>
+                  {generating ? <Loader2 className="mr-2 h-4 w-4 animate-spin motion-reduce:animate-none" /> : <ClipboardList className="mr-2 h-4 w-4" />}
+                  {generating ? 'Generando planificación…' : 'Generar con Lovable AI'}
+                </Button>
+                {generating && <Button type="button" variant="ghost" onClick={() => abortRef.current?.abort()}><Square className="mr-2 h-4 w-4" />Detener</Button>}
+              </div>
+              {generationError && <p role="alert" className="text-sm text-destructive">{generationError}</p>}
+            </div>
+          )}
 
           <div>
             <Label htmlFor="contenido">Contenido Desarrollado *</Label>
@@ -296,8 +344,8 @@ const TopicForm: React.FC<TopicFormProps> = ({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancelar
             </Button>
-            <Button type="submit">
-              {initialData ? 'Actualizar' : 'Registrar'} Tema
+            <Button type="submit" disabled={generating}>
+              {planningMode ? 'Guardar planificación' : `${initialData ? 'Actualizar' : 'Registrar'} Tema`}
             </Button>
           </DialogFooter>
         </form>
