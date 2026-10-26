@@ -85,7 +85,14 @@ const Index = () => {
       description: "Inventario de herramientas e insumos",
       link: "/panol",
       color: "bg-slate-500"
-    }
+    },
+    ...(hasRole(['administrador', 'directivo']) ? [{
+      title: "Registro de Actividad",
+      icon: <Building className="h-6 w-6" />,
+      description: "Inicios de sesión y cambios por módulo",
+      link: "/auditoria",
+      color: "bg-indigo-500"
+    }] : [])
   ];
 
   // Módulos exclusivos para administradores
