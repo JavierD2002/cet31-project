@@ -71,6 +71,10 @@ export function AppSidebar() {
       items.push({ to: '/panol', label: 'Pañol', icon: Wrench });
     }
 
+    if (hasRole(['administrador', 'directivo'])) {
+      items.push({ to: '/auditoria', label: 'Registro de Actividad', icon: BarChart3 });
+    }
+
     return items;
   };
 

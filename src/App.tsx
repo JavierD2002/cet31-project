@@ -30,6 +30,7 @@ import AdminDashboard from "./pages/admin/Dashboard";
 import UserManagement from "./pages/admin/users/UserManagement";
 import UserForm from "./pages/admin/UserForm";
 import Panol from "./pages/Panol";
+import Auditoria from "./pages/Auditoria";
 import PasswordRecovery from "./pages/PasswordRecovery";
 
 const Home = () => {
@@ -245,6 +246,7 @@ const App = () => (
             />
 
             <Route path="/panol" element={<ProtectedRoute allowedRoles={['administrador', 'directivo', 'panolero']}><Panol /></ProtectedRoute>} />
+            <Route path="/auditoria" element={<ProtectedRoute allowedRoles={['administrador', 'directivo']}><Auditoria /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
