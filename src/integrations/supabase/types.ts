@@ -575,6 +575,45 @@ export type Database = {
           },
         ]
       }
+      registro_actividad: {
+        Row: {
+          accion: string
+          auth_user_id: string | null
+          created_at: string
+          detalle: Json | null
+          email: string | null
+          id: number
+          modulo: string
+          registro_id: string | null
+          rol: string | null
+          usuario_nombre: string | null
+        }
+        Insert: {
+          accion: string
+          auth_user_id?: string | null
+          created_at?: string
+          detalle?: Json | null
+          email?: string | null
+          id?: number
+          modulo: string
+          registro_id?: string | null
+          rol?: string | null
+          usuario_nombre?: string | null
+        }
+        Update: {
+          accion?: string
+          auth_user_id?: string | null
+          created_at?: string
+          detalle?: Json | null
+          email?: string | null
+          id?: number
+          modulo?: string
+          registro_id?: string | null
+          rol?: string | null
+          usuario_nombre?: string | null
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -634,6 +673,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      actor_info: { Args: { p_uid: string }; Returns: Record<string, unknown> }
       admin_delete_school_user: { Args: { p_id: number }; Returns: undefined }
       admin_save_school_user: {
         Args: {
