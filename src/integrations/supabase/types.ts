@@ -43,6 +43,59 @@ export type Database = {
           },
         ]
       }
+      alertas_leidas: {
+        Row: {
+          alerta_id: number
+          oculta: boolean
+          user_id: string
+        }
+        Insert: {
+          alerta_id: number
+          oculta?: boolean
+          user_id: string
+        }
+        Update: {
+          alerta_id?: number
+          oculta?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "alertas_leidas_alerta_id_fkey"
+            columns: ["alerta_id"]
+            isOneToOne: false
+            referencedRelation: "alertas_seguridad"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      alertas_seguridad: {
+        Row: {
+          created_at: string
+          detalle: Json | null
+          id: number
+          mensaje: string
+          tipo: string
+          titulo: string
+        }
+        Insert: {
+          created_at?: string
+          detalle?: Json | null
+          id?: never
+          mensaje: string
+          tipo: string
+          titulo: string
+        }
+        Update: {
+          created_at?: string
+          detalle?: Json | null
+          id?: never
+          mensaje?: string
+          tipo?: string
+          titulo?: string
+        }
+        Relationships: []
+      }
       asignaturas: {
         Row: {
           carga_horaria: number
@@ -402,6 +455,24 @@ export type Database = {
           },
         ]
       }
+      intentos_fallidos: {
+        Row: {
+          created_at: string
+          email: string
+          id: number
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: never
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: never
+        }
+        Relationships: []
+      }
       libro_temas: {
         Row: {
           actividad: string
@@ -702,6 +773,7 @@ export type Database = {
         Returns: boolean
       }
       own_student: { Args: { student_id: number }; Returns: boolean }
+      report_failed_login: { Args: { p_email: string }; Returns: undefined }
       save_school_attendance: {
         Args: {
           p_asignatura: number
