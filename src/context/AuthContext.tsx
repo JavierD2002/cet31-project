@@ -73,7 +73,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [queryClient]);
   const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
-    if (error) throw error;
+    if (error) {
+      if (/invalid/i.test(error.message)) void supabase.rpc('report_failed_login', { p_email: email.trim() });
+      throw error;
+    }
   };
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
