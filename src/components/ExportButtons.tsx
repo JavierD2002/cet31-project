@@ -9,6 +9,10 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { exportToPDF, exportToExcel } from '@/utils/exportUtils';
 import { useToast } from '@/hooks/use-toast';
+import { useLocation } from 'react-router-dom';
+import { useReportPermissions } from '@/hooks/useReportPermissions';
+import { reportForPath, type ReportType } from '@/lib/reportPermissions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ExportColumn {
   header: string;
@@ -20,12 +24,16 @@ interface ExportButtonsProps {
   columns: ExportColumn[];
   data: any[];
   filename: string;
+  reportType?: ReportType;
 }
 
-const ExportButtons = ({ title, columns, data, filename }: ExportButtonsProps) => {
+const ExportButtons = ({ title, columns, data, filename, reportType }: ExportButtonsProps) => {
   const { toast } = useToast();
+  const location = useLocation();
+  const { canConsult } = useReportPermissions();
+  const type = reportType ?? reportForPath(location.pathname);
 
-  const handleExport = (type: 'pdf' | 'excel') => {
+  const handleExport = async (format: 'pdf' | 'excel') => {
     if (data.length === 0) {
       toast({
         title: "Sin datos",
@@ -36,14 +44,18 @@ const ExportButtons = ({ title, columns, data, filename }: ExportButtonsProps) =
     }
 
     try {
-      if (type === 'pdf') {
+      if (type) {
+        const { error } = await supabase.rpc('assert_report_access', { p_report_type: type });
+        if (error) throw error;
+      }
+      if (format === 'pdf') {
         exportToPDF({ title, columns, data, filename });
       } else {
         exportToExcel({ title, columns, data, filename });
       }
       toast({
         title: "Exportación exitosa",
-        description: `Archivo ${type === 'pdf' ? 'PDF' : 'Excel'} descargado correctamente`,
+        description: `Archivo ${format === 'pdf' ? 'PDF' : 'Excel'} descargado correctamente`,
       });
     } catch {
       toast({
@@ -53,6 +65,8 @@ const ExportButtons = ({ title, columns, data, filename }: ExportButtonsProps) =
       });
     }
   };
+
+  if (type && !canConsult(type)) return null;
 
   return (
     <DropdownMenu>

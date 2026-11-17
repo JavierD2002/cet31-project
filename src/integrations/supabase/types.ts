@@ -685,6 +685,24 @@ export type Database = {
         }
         Relationships: []
       }
+      report_permissions: {
+        Row: {
+          allowed: boolean
+          report_type: string
+          role: Database["public"]["Enums"]["school_role"]
+        }
+        Insert: {
+          allowed?: boolean
+          report_type: string
+          role: Database["public"]["Enums"]["school_role"]
+        }
+        Update: {
+          allowed?: boolean
+          report_type?: string
+          role?: Database["public"]["Enums"]["school_role"]
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           id: string
@@ -760,10 +778,15 @@ export type Database = {
         }
         Returns: number
       }
+      assert_report_access: {
+        Args: { p_report_type: string }
+        Returns: undefined
+      }
       attendance_responsibility: {
         Args: { attendance_id: number; student_user_id: number }
         Returns: boolean
       }
+      can_consult_report: { Args: { p_report_type: string }; Returns: boolean }
       grade_responsibility: {
         Args: { student_id: number; subject_id: number }
         Returns: boolean

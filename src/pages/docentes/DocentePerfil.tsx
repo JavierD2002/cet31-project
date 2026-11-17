@@ -18,6 +18,7 @@ import { useToast } from "@/components/ui/use-toast";
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
 import { getTeacherProfile } from '@/services/supabase/teachers';
+import ReportAccess from '@/components/ReportAccess';
 
 interface TeacherAsignatura {
   id: number;
@@ -242,6 +243,7 @@ const DocentePerfil = () => {
                   
                   {/* Pestaña de Asignaturas */}
                   <TabsContent value="asignaturas">
+                    <ReportAccess type="asignaturas">
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center">
@@ -275,10 +277,12 @@ const DocentePerfil = () => {
                         </div>
                       </CardContent>
                     </Card>
+                    </ReportAccess>
                   </TabsContent>
                   
                   {/* Pestaña de Estudiantes */}
                   <TabsContent value="estudiantes">
+                    <ReportAccess type="estudiantes">
                     <Card>
                       <CardHeader>
                         <CardTitle className="text-lg flex items-center">
@@ -313,10 +317,12 @@ const DocentePerfil = () => {
                         </div>
                       </CardContent>
                     </Card>
+                    </ReportAccess>
                   </TabsContent>
                   
                   {/* Pestaña de Informes */}
                   <TabsContent value="informes">
+                    <ReportAccess type="informes">
                     <Card>
                       <CardHeader>
                         <div className="flex justify-between items-center">
@@ -355,6 +361,7 @@ const DocentePerfil = () => {
                         </div>
                       </CardContent>
                     </Card>
+                    </ReportAccess>
                   </TabsContent>
                 </Tabs>
               </div>

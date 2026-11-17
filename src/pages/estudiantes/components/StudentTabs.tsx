@@ -1,5 +1,6 @@
 
 import { ReactNode } from 'react';
+import ReportAccess from '@/components/ReportAccess';
 import { Book, Calendar } from 'lucide-react';
 import {
   Tabs,
@@ -28,11 +29,11 @@ const StudentTabs = ({ gradesContent, attendanceContent }: StudentTabsProps) => 
       </TabsList>
       
       <TabsContent value="calificaciones">
-        {gradesContent}
+        <ReportAccess type="calificaciones">{gradesContent}</ReportAccess>
       </TabsContent>
       
       <TabsContent value="asistencia">
-        {attendanceContent}
+        <ReportAccess type="asistencia">{attendanceContent}</ReportAccess>
       </TabsContent>
     </Tabs>
   );

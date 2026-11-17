@@ -15,6 +15,7 @@ import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import Header from '@/components/Header';
 import Footer from '@/components/Footer';
+import ReportPermissionsSettings from '@/components/ReportPermissionsSettings';
 import { 
   Settings, 
   School, 
@@ -163,7 +164,7 @@ const Configuracion = () => {
         </div>
 
         <Tabs defaultValue="general" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="flex flex-wrap h-auto w-full gap-1">
             <TabsTrigger value="general" className="flex items-center gap-2">
               <School className="h-4 w-4" />
               General
@@ -183,6 +184,9 @@ const Configuracion = () => {
             <TabsTrigger value="footer" className="flex items-center gap-2">
               <Building2 className="h-4 w-4" />
               Pie de Página
+            </TabsTrigger>
+            <TabsTrigger value="report-permissions" className="flex items-center gap-2">
+              <Shield className="h-4 w-4" />Permisos de Reportes
             </TabsTrigger>
           </TabsList>
 
@@ -602,6 +606,7 @@ const Configuracion = () => {
           <TabsContent value="footer">
             <FooterConfigTab />
           </TabsContent>
+          <TabsContent value="report-permissions"><ReportPermissionsSettings /></TabsContent>
         </Tabs>
       </main>
 
