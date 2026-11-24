@@ -43,6 +43,13 @@
       "when": 1794878541708,
       "tag": "0005_report_type_permissions",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1795480466020,
+      "tag": "0006_tighten_config_and_report_permissions_read",
+      "breakpoints": true
     }
   ]
 }
