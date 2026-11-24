@@ -1,6 +1,6 @@
 # Real authentication and responsibility-based permissions
-- [ ] Add administrator-managed permissions by report type, preserving responsibility restrictions.
-- [ ] Verify saved report permissions and server-side denial with authenticated accounts.
+- [x] Add administrator-managed permissions by report type, preserving responsibility restrictions.
+- [ ] Verify server-side denial with a teacher or student account.
 - [ ] Verify and complete PDF and Excel exports across lists, reports, bulletins and personal records.
 - [ ] Download and inspect exported files using an authenticated account.
 - [x] Add AI lesson planning in Libro de Temas and test permission rules.
